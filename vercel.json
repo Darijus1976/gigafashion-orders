@@ -22,14 +22,5 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
-    "GOOGLE_SERVICE_ACCOUNT_JSON": "@google_service_account_json",
-    "GOOGLE_DRIVE_STAFF_FOLDER_ID": "@google_drive_staff_folder_id",
-    "GOOGLE_DRIVE_CLIENT_FOLDER_ID": "@google_drive_client_folder_id",
-    "GOOGLE_SHEETS_ID": "@google_sheets_id"
-  }
+  ]
 }
