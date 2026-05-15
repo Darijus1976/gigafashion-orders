@@ -39,33 +39,28 @@ export default function AdminProductsPage() {
 
   const handleSave = async (formData: any) => {
     try {
+      const productData = {
+        name: formData.name,
+        price: formData.price,
+        catalogue: formData.catalogue,
+        extras_type: formData.extras_type,
+        image_url: formData.imageFile ? URL.createObjectURL(formData.imageFile) : editingProduct?.image_url || null,
+        is_active: formData.is_active,
+        display_order: formData.display_order,
+        occasion_tags: formData.occasion_tags || [],
+      }
+
       if (editingProduct) {
-        // Update existing
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('products')
-          .update({
-            name: formData.name,
-            price: formData.price,
-            catalogue: formData.catalogue,
-            extras_type: formData.extras_type,
-            is_active: formData.is_active,
-            display_order: formData.display_order,
-          })
+          .update(productData)
           .eq('id', editingProduct.id)
         
         if (error) throw error
       } else {
-        // Create new
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('products')
-          .insert({
-            name: formData.name,
-            price: formData.price,
-            catalogue: formData.catalogue,
-            extras_type: formData.extras_type,
-            is_active: formData.is_active,
-            display_order: formData.display_order,
-          })
+          .insert(productData)
         
         if (error) throw error
       }
@@ -75,7 +70,8 @@ export default function AdminProductsPage() {
       fetchProducts()
     } catch (error) {
       console.error('Error saving product:', error)
-      alert('Error saving product')
+      const message = error instanceof Error ? error.message : JSON.stringify(error)
+      alert(`Error saving product: ${message}`)
     }
   }
 
