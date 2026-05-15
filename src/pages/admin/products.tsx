@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { supabase } from '@/lib/supabase/client'
@@ -12,7 +11,6 @@ import type { Database } from '@/lib/supabase/types'
 type Product = Database['public']['Tables']['products']['Row']
 
 export default function AdminProductsPage() {
-  const { user, isLoading: authLoading } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -96,19 +94,6 @@ export default function AdminProductsPage() {
       console.error('Error deleting product:', error)
       alert('Error deleting product')
     }
-  }
-
-  if (authLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-rose-200 border-t-rose-600" />
-      </div>
-    )
-  }
-
-  if (!user) {
-    window.location.href = '/login'
-    return null
   }
 
   const catalogueLabels: Record<string, string> = {

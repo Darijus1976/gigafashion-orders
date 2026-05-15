@@ -1,9 +1,7 @@
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LogOut, LayoutGrid, Package, Settings, User } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
+import { LayoutGrid, Package, Settings, User } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -21,19 +19,6 @@ const catalogueTabs = [
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  // Skip auth check for testing
-  useEffect(() => {
-    setIsLoading(false)
-    setIsAuthenticated(true)
-  }, [])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
 
   // Get current tab from URL
   const searchParams = new URLSearchParams(location.search)
@@ -43,10 +28,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const isCatalogues = location.pathname === '/admin' && !location.pathname.includes('/products')
   const isProducts = location.pathname.includes('/admin/products')
   const isSettings = location.pathname.includes('/admin/settings')
-
-  // Skip auth for testing
-  // if (isLoading) { ... }
-  // if (!isAuthenticated) { ... }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,21 +81,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </nav>
           </div>
           
-          {/* User & Logout */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="w-4 h-4" />
-              <span>Administrator</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-rose-600"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <User className="w-4 h-4" />
+            <span>Administrator</span>
           </div>
         </div>
         
