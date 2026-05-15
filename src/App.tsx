@@ -6,7 +6,7 @@ const IndexPage = lazy(() => import('./pages/index'))
 const OrderPage = lazy(() => import('./pages/order/[orderNumber]'))
 const DashboardPage = lazy(() => import('./pages/dashboard'))
 const AdminPage = lazy(() => import('./pages/admin/index'))
-const AdminProductsPage = lazy(() => import('./pages/admin/products-local'))
+const AdminProductsPage = lazy(() => import('./pages/admin/products'))
 const LoginPage = lazy(() => import('./pages/login'))
 
 // Loading component
