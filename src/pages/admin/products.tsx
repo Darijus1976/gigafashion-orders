@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { ImageIcon, Plus, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, Folder, ImageIcon, Plus, Pencil, Trash2 } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -14,6 +14,7 @@ type Product = Database['public']['Tables']['products']['Row']
 export default function AdminProductsPage() {
   const [searchParams] = useSearchParams()
   const catalogueFilter = searchParams.get('catalogue')
+  const extrasTypeFilter = searchParams.get('extrasType')
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -134,6 +135,10 @@ export default function AdminProductsPage() {
     setIsFormOpen(true)
   }
 
+  const selectedExtrasProducts = extrasTypeFilter
+    ? extrasGroups[extrasTypeFilter] || []
+    : []
+
   const renderProductCard = (product: Product) => (
     <Card
       key={product.id}
@@ -225,25 +230,72 @@ export default function AdminProductsPage() {
             </CardContent>
           </Card>
         ) : catalogueFilter === 'extras' ? (
-          <div className="space-y-8">
-            {extrasTypeOrder
-              .filter((type) => extrasGroups[type]?.length)
-              .map((type) => (
-                <section key={type} className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-rose-200 pb-2">
-                    <h2 className="text-xl font-bold text-rose-700">
-                      {extrasTypeLabels[type] || type}
-                    </h2>
-                    <span className="text-sm text-muted-foreground">
-                      {extrasGroups[type].length} products
-                    </span>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {extrasGroups[type].map(renderProductCard)}
-                  </div>
-                </section>
-              ))}
-          </div>
+          extrasTypeFilter ? (
+            <div className="space-y-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  window.history.pushState(null, '', '/admin/products?catalogue=extras')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }}
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Back to Extras folders
+              </Button>
+
+              <div className="flex items-center justify-between border-b border-rose-200 pb-2">
+                <h2 className="text-xl font-bold text-rose-700">
+                  {extrasTypeLabels[extrasTypeFilter] || extrasTypeFilter}
+                </h2>
+                <span className="text-sm text-muted-foreground">
+                  {selectedExtrasProducts.length} products
+                </span>
+              </div>
+
+              {selectedExtrasProducts.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground">No products in this extras folder yet.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {selectedExtrasProducts.map(renderProductCard)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {extrasTypeOrder.map((type) => {
+                const count = extrasGroups[type]?.length || 0
+
+                return (
+                  <Card
+                    key={type}
+                    className="cursor-pointer transition-shadow hover:shadow-md"
+                    onClick={() => {
+                      window.history.pushState(null, '', `/admin/products?catalogue=extras&extrasType=${type}`)
+                      window.dispatchEvent(new PopStateEvent('popstate'))
+                    }}
+                  >
+                    <CardContent className="flex items-center gap-4 p-6">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-rose-50 text-rose-700">
+                        <Folder className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold">
+                          {extrasTypeLabels[type] || type}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          {count} products
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {products.map(renderProductCard)}
