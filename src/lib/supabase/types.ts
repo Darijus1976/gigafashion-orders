@@ -43,6 +43,7 @@ export interface Database {
           catalogue: 'christening' | 'communion' | 'confirmation' | 'debs' | 'wedding' | 'extras'
           extras_type: 'bags' | 'veils' | 'belts' | 'headbands' | 'tiaras' | 'cuffs_gloves' | null
           price: number
+          description: string | null
           image_url: string | null
           is_active: boolean
           display_order: number

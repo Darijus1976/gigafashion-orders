@@ -10,6 +10,18 @@ import { ChevronLeft, Folder, ImageIcon, Plus, Pencil, Trash2 } from 'lucide-rea
 import type { Database } from '@/lib/supabase/types'
 
 type Product = Database['public']['Tables']['products']['Row']
+const PRODUCT_IMAGES_BUCKET = 'product-images'
+
+function getStoragePathFromPublicUrl(url: string | null) {
+  if (!url) return null
+
+  const marker = `/storage/v1/object/public/${PRODUCT_IMAGES_BUCKET}/`
+  const markerIndex = url.indexOf(marker)
+
+  if (markerIndex === -1) return null
+
+  return decodeURIComponent(url.slice(markerIndex + marker.length))
+}
 
 export default function AdminProductsPage() {
   const [searchParams] = useSearchParams()
@@ -45,12 +57,40 @@ export default function AdminProductsPage() {
 
   const handleSave = async (formData: any) => {
     try {
+      let imageUrl = editingProduct?.image_url ?? null
+
+      if (formData.clearImage) {
+        imageUrl = null
+      }
+
+      if (formData.imageFile) {
+        const extension = formData.imageFile.name.split('.').pop()?.toLowerCase() || 'jpg'
+        const safeName = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        const filePath = `${formData.catalogue}/${Date.now()}-${safeName || 'product'}.${extension}`
+
+        const { error: uploadError } = await supabase.storage
+          .from(PRODUCT_IMAGES_BUCKET)
+          .upload(filePath, formData.imageFile, {
+            cacheControl: '3600',
+            upsert: false,
+          })
+
+        if (uploadError) throw uploadError
+
+        const { data } = supabase.storage
+          .from(PRODUCT_IMAGES_BUCKET)
+          .getPublicUrl(filePath)
+
+        imageUrl = data.publicUrl
+      }
+
       const productData = {
         name: formData.name,
         price: formData.price,
+        description: formData.description || null,
         catalogue: formData.catalogue,
         extras_type: formData.extras_type,
-        image_url: formData.imageUrl ?? editingProduct?.image_url ?? null,
+        image_url: imageUrl,
         is_active: formData.is_active,
         display_order: formData.display_order,
         occasion_tags: formData.occasion_tags || [],
@@ -71,6 +111,16 @@ export default function AdminProductsPage() {
         if (error) throw error
       }
 
+      if ((formData.clearImage || formData.imageFile) && editingProduct?.image_url) {
+        const oldPath = getStoragePathFromPublicUrl(editingProduct.image_url)
+
+        if (oldPath) {
+          await supabase.storage
+            .from(PRODUCT_IMAGES_BUCKET)
+            .remove([oldPath])
+        }
+      }
+
       setIsFormOpen(false)
       setEditingProduct(null)
       fetchProducts()
@@ -85,12 +135,21 @@ export default function AdminProductsPage() {
     if (!confirm(`Delete "${product.name}"?`)) return
 
     try {
+      const imagePath = getStoragePathFromPublicUrl(product.image_url)
+
       const { error } = await supabase
         .from('products')
         .delete()
         .eq('id', product.id)
       
       if (error) throw error
+
+      if (imagePath) {
+        await supabase.storage
+          .from(PRODUCT_IMAGES_BUCKET)
+          .remove([imagePath])
+      }
+
       fetchProducts()
     } catch (error) {
       console.error('Error deleting product:', error)
