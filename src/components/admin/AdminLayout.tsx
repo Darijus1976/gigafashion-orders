@@ -1,7 +1,9 @@
 import { ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LayoutGrid, Package, Settings, User } from 'lucide-react'
+import { LayoutGrid, LogOut, Package, Settings, User } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -19,6 +21,11 @@ const catalogueTabs = [
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate('/login')
+  }
 
   // Get current tab from URL
   const searchParams = new URLSearchParams(location.search)
@@ -81,9 +88,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </nav>
           </div>
           
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="w-4 h-4" />
-            <span>Administrator</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="w-4 h-4" />
+              <span>Administrator</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-rose-600"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
         

@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
 // Lazy load pages for code splitting
 const IndexPage = lazy(() => import('./pages/index'))
@@ -24,8 +25,8 @@ function App() {
           <Route path="/" element={<IndexPage />} />
           <Route path="/order/:orderNumber" element={<OrderPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+          <Route path="/admin/products" element={<ProtectedRoute><AdminProductsPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </Suspense>
