@@ -106,6 +106,25 @@ export default function AdminProductsPage() {
     extras: 'Extras',
   }
 
+  const extrasTypeLabels: Record<string, string> = {
+    bags: 'Bags',
+    veils: 'Veils',
+    belts: 'Belts',
+    headbands: 'Headbands',
+    tiaras: 'Tiaras',
+    cuffs_gloves: 'Cuffs/Gloves',
+    uncategorized: 'Uncategorized',
+  }
+
+  const extrasTypeOrder = ['bags', 'veils', 'belts', 'headbands', 'tiaras', 'cuffs_gloves', 'uncategorized']
+
+  const extrasGroups = products.reduce((acc, product) => {
+    const type = product.extras_type || 'uncategorized'
+    if (!acc[type]) acc[type] = []
+    acc[type].push(product)
+    return acc
+  }, {} as Record<string, Product[]>)
+
   useEffect(() => {
     fetchProducts()
   }, [catalogueFilter])
@@ -114,6 +133,68 @@ export default function AdminProductsPage() {
     setEditingProduct(product)
     setIsFormOpen(true)
   }
+
+  const renderProductCard = (product: Product) => (
+    <Card
+      key={product.id}
+      className="overflow-hidden cursor-pointer transition-shadow hover:shadow-md"
+      onClick={() => openProduct(product)}
+    >
+      <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <ImageIcon className="h-12 w-12 text-gray-400" />
+        )}
+      </div>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{product.name}</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {catalogueLabels[product.catalogue] || product.catalogue}
+            </p>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation()
+                openProduct(product)
+              }}
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation()
+                handleDelete(product)
+              }}
+            >
+              <Trash2 className="w-4 h-4 text-rose-600" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-bold text-rose-600">
+          €{product.price.toFixed(2)}
+        </p>
+        {product.extras_type && (
+          <p className="text-sm text-muted-foreground mt-1">
+            Type: {extrasTypeLabels[product.extras_type] || product.extras_type}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
 
   return (
     <AdminLayout>
@@ -143,69 +224,29 @@ export default function AdminProductsPage() {
               <p className="text-muted-foreground">No products yet. Add your first product!</p>
             </CardContent>
           </Card>
+        ) : catalogueFilter === 'extras' ? (
+          <div className="space-y-8">
+            {extrasTypeOrder
+              .filter((type) => extrasGroups[type]?.length)
+              .map((type) => (
+                <section key={type} className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-rose-200 pb-2">
+                    <h2 className="text-xl font-bold text-rose-700">
+                      {extrasTypeLabels[type] || type}
+                    </h2>
+                    <span className="text-sm text-muted-foreground">
+                      {extrasGroups[type].length} products
+                    </span>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {extrasGroups[type].map(renderProductCard)}
+                  </div>
+                </section>
+              ))}
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <Card
-                key={product.id}
-                className="overflow-hidden cursor-pointer transition-shadow hover:shadow-md"
-                onClick={() => openProduct(product)}
-              >
-                <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
-                  {product.image_url ? (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <ImageIcon className="h-12 w-12 text-gray-400" />
-                  )}
-                </div>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{product.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {catalogueLabels[product.catalogue] || product.catalogue}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          openProduct(product)
-                        }}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          handleDelete(product)
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 text-rose-600" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold text-rose-600">
-                    €{product.price.toFixed(2)}
-                  </p>
-                  {product.extras_type && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Type: {product.extras_type}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+            {products.map(renderProductCard)}
           </div>
         )}
       </div>
