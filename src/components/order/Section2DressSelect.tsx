@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ShoppingBag, PenTool, Plus, ImageIcon, X } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/types'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -40,8 +41,6 @@ interface Section2DressSelectProps {
   onRemoveItem?: (id: string) => void
 }
 
-const STORAGE_KEY = 'giga_fashion_products'
-
 const occasionLabels: Record<Occasion, string> = {
   christening: 'Krikštynos',
   communion: 'Komunija',
@@ -58,33 +57,42 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
   const [customPrice, setCustomPrice] = useState('')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [products, setProducts] = useState<Product[]>([])
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [customImageFile, setCustomImageFile] = useState<File | null>(null)
   const [customImagePreview, setCustomImagePreview] = useState<string | null>(null)
 
   // Filter dress items from orderItems (both catalogue and custom)
   const dressItems = orderItems.filter(item => item.type === 'dress' || item.type === 'custom')
 
-  // Load products from localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const parsed: Product[] = JSON.parse(stored)
-        setProducts(parsed)
+    const loadProducts = async () => {
+      try {
+        setIsLoadingProducts(true)
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true)
+          .neq('catalogue', 'extras')
+          .order('display_order', { ascending: true })
+          .order('name', { ascending: true })
+
+        if (error) throw error
+        setProducts(data || [])
+      } catch (error) {
+        console.error('Error loading products:', error)
+        setProducts([])
+      } finally {
+        setIsLoadingProducts(false)
       }
-    } catch (error) {
-      console.error('Error loading products from localStorage:', error)
     }
+
+    loadProducts()
   }, [])
 
-  // Filter products by occasion
   const filteredProducts = occasion
     ? products.filter(p => {
-        // Direct catalogue match
         if (p.catalogue === occasion) return true
-        // Occasion tags match
         if (p.occasion_tags?.includes(occasion)) return true
-        // Special case: wedding_alteration should show wedding products
         if (occasion === 'wedding_alteration' && p.catalogue === 'wedding') return true
         return false
       })
@@ -225,7 +233,9 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             {occasion ? `${occasionLabels[occasion]} katalogas` : 'Visi katalogai'}
           </h3>
           
-          {filteredProducts.length === 0 ? (
+          {isLoadingProducts ? (
+            <p className="text-muted-foreground">Kraunamos suknelės...</p>
+          ) : filteredProducts.length === 0 ? (
             <p className="text-muted-foreground">Šioje kategorijoje nėra suknelių</p>
           ) : (
             <div className="grid grid-cols-2 gap-4">

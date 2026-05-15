@@ -1,5 +1,4 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { clientInfoSchema, occasionOptions, type ClientInfoFormData } from '@/lib/utils/validation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,37 +14,44 @@ import {
 interface Section1ClientInfoProps {
   onSubmit?: (data: ClientInfoFormData) => void
   defaultValues?: Partial<ClientInfoFormData>
+  onDataChange?: (data: Partial<ClientInfoFormData>) => void
 }
 
-export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientInfoProps) {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<ClientInfoFormData>({
-    resolver: zodResolver(clientInfoSchema),
-    defaultValues: {
-      clientName: '',
-      phone: '',
-      visitDate: new Date().toISOString().slice(0, 16),
-      occasion: undefined,
-      occasionCustom: '',
-      eventDate: '',
-      ...defaultValues,
-    },
-  })
-
-  const selectedOccasion = watch('occasion')
+export function Section1ClientInfo({ onSubmit, defaultValues, onDataChange }: Section1ClientInfoProps) {
+  const [errors, setErrors] = useState<Partial<Record<keyof ClientInfoFormData, string>>>({})
+  const selectedOccasion = defaultValues?.occasion
   const isOtherOccasion = selectedOccasion === 'other'
 
-  const handleFormSubmit = (data: ClientInfoFormData) => {
-    onSubmit?.(data)
+  const handleFieldChange = (
+    field: keyof ClientInfoFormData,
+    value: ClientInfoFormData[keyof ClientInfoFormData]
+  ) => {
+    onDataChange?.({
+      ...defaultValues,
+      [field]: value,
+    })
+  }
+
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const result = clientInfoSchema.safeParse(defaultValues)
+
+    if (!result.success) {
+      const fieldErrors: Partial<Record<keyof ClientInfoFormData, string>> = {}
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof ClientInfoFormData
+        fieldErrors[field] = issue.message
+      }
+      setErrors(fieldErrors)
+      return
+    }
+
+    setErrors({})
+    onSubmit?.(result.data)
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleFormSubmit} className="space-y-4">
       {/* Client Name */}
       <div className="space-y-2">
         <Label htmlFor="clientName">
@@ -53,12 +59,13 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
         </Label>
         <Input
           id="clientName"
-          {...register('clientName')}
+          value={defaultValues?.clientName ?? ''}
+          onChange={(event) => handleFieldChange('clientName', event.target.value)}
           placeholder="Enter full name"
           className={errors.clientName ? 'border-rose-500' : ''}
         />
         {errors.clientName && (
-          <p className="text-sm text-rose-600">{errors.clientName.message}</p>
+          <p className="text-sm text-rose-600">{errors.clientName}</p>
         )}
       </div>
 
@@ -69,12 +76,13 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
         </Label>
         <Input
           id="phone"
-          {...register('phone')}
+          value={defaultValues?.phone ?? ''}
+          onChange={(event) => handleFieldChange('phone', event.target.value)}
           placeholder="+353... or 08x..."
           className={errors.phone ? 'border-rose-500' : ''}
         />
         {errors.phone && (
-          <p className="text-sm text-rose-600">{errors.phone.message}</p>
+          <p className="text-sm text-rose-600">{errors.phone}</p>
         )}
         <p className="text-xs text-muted-foreground">
           Format: +353XXXXXXXX or 08XXXXXXXX
@@ -89,11 +97,12 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
         <Input
           id="visitDate"
           type="datetime-local"
-          {...register('visitDate')}
+          value={defaultValues?.visitDate ?? ''}
+          onChange={(event) => handleFieldChange('visitDate', event.target.value)}
           className={errors.visitDate ? 'border-rose-500' : ''}
         />
         {errors.visitDate && (
-          <p className="text-sm text-rose-600">{errors.visitDate.message}</p>
+          <p className="text-sm text-rose-600">{errors.visitDate}</p>
         )}
       </div>
 
@@ -104,7 +113,13 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
         </Label>
         <Select
           value={selectedOccasion}
-          onValueChange={(value) => setValue('occasion', value as ClientInfoFormData['occasion'])}
+          onValueChange={(value) => {
+            const occasion = value as ClientInfoFormData['occasion']
+            onDataChange?.({
+              ...defaultValues,
+              occasion,
+            })
+          }}
         >
           <SelectTrigger className={errors.occasion ? 'border-rose-500' : ''}>
             <SelectValue placeholder="Select occasion" />
@@ -118,7 +133,7 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
           </SelectContent>
         </Select>
         {errors.occasion && (
-          <p className="text-sm text-rose-600">{errors.occasion.message}</p>
+          <p className="text-sm text-rose-600">{errors.occasion}</p>
         )}
       </div>
 
@@ -130,7 +145,8 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
           </Label>
           <Input
             id="occasionCustom"
-            {...register('occasionCustom')}
+            value={defaultValues?.occasionCustom ?? ''}
+            onChange={(event) => handleFieldChange('occasionCustom', event.target.value)}
             placeholder="Specify occasion"
           />
         </div>
@@ -142,7 +158,8 @@ export function Section1ClientInfo({ onSubmit, defaultValues }: Section1ClientIn
         <Input
           id="eventDate"
           type="date"
-          {...register('eventDate')}
+          value={defaultValues?.eventDate ?? ''}
+          onChange={(event) => handleFieldChange('eventDate', event.target.value)}
         />
       </div>
 

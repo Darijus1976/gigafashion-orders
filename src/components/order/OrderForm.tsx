@@ -11,6 +11,7 @@ import type { ClientInfoFormData } from '@/lib/utils/validation'
 import type { Database } from '@/lib/supabase/types'
 
 type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
+const CLIENT_INFO_DRAFT_KEY = 'gigafashion-client-info-draft'
 
 interface OrderItem {
   id: string
@@ -42,6 +43,23 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
+  const [clientInfoData, setClientInfoData] = useState<Partial<ClientInfoFormData>>(() => {
+    const initialData = {
+      clientName: '',
+      phone: '',
+      visitDate: new Date().toISOString().slice(0, 16),
+      occasion: undefined,
+      occasionCustom: '',
+      eventDate: '',
+    }
+
+    try {
+      const savedDraft = window.localStorage.getItem(CLIENT_INFO_DRAFT_KEY)
+      return savedDraft ? { ...initialData, ...JSON.parse(savedDraft) } : initialData
+    } catch {
+      return initialData
+    }
+  })
 
   // Fetch order number on mount if not provided
   useEffect(() => {
@@ -51,6 +69,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
         .catch(console.error)
     }
   }, [orderNumber, initialOrderNumber])
+
+  useEffect(() => {
+    window.localStorage.setItem(CLIENT_INFO_DRAFT_KEY, JSON.stringify(clientInfoData))
+  }, [clientInfoData])
 
   // Calculate total amount from order items
   const totalAmount = orderItems.reduce((sum, item) => sum + item.price, 0)
@@ -69,6 +91,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     // TODO: Implement actual save logic with Supabase
     // await supabase.from('orders').insert(...)
     setTimeout(() => {
+      window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
       setIsSaving(false)
       alert('Order saved!')
     }, 1000)
@@ -80,8 +103,14 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
 
   const handleClientInfoSubmit = (data: ClientInfoFormData) => {
     console.log('Client info submitted:', data)
+    setClientInfoData(data)
     setSelectedOccasion(data.occasion)
     // TODO: Save to Zustand store
+  }
+
+  const handleClientInfoChange = (data: Partial<ClientInfoFormData>) => {
+    setClientInfoData(data)
+    setSelectedOccasion(data.occasion)
   }
   
   const handleAddDressToOrder = (item: {
@@ -176,11 +205,16 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           <span>1. Client Information</span>
           <span>{isExpanded[1] ? '−' : '+'}</span>
         </button>
-        {isExpanded[1] && (
-          <div className="border-t border-gray-200 p-4">
-            <Section1ClientInfo onSubmit={handleClientInfoSubmit} />
-          </div>
-        )}
+        <div 
+          className="border-t border-gray-200 p-4"
+          style={{ display: isExpanded[1] ? 'block' : 'none' }}
+        >
+          <Section1ClientInfo 
+            onSubmit={handleClientInfoSubmit} 
+            defaultValues={clientInfoData}
+            onDataChange={handleClientInfoChange}
+          />
+        </div>
       </div>
 
       {/* Section 2 - Dress Selection */}
