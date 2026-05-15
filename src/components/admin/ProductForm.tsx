@@ -9,27 +9,27 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ImageIcon, X, Upload, Eye, Save, Trash2 } from 'lucide-react'
+import { ImageIcon, X, Eye, Save, Trash2 } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
 
 type Product = Database['public']['Tables']['products']['Row']
 type Catalogue = Product['catalogue']
 
 const CATALOGUES: { value: Catalogue; label: string }[] = [
-  { value: 'wedding', label: 'Vestuvių suknelės' },
-  { value: 'debs', label: 'Šimtadienių suknelės' },
-  { value: 'christening', label: 'Krikštynų suknelės' },
-  { value: 'communion', label: 'Komunijos suknelės' },
-  { value: 'confirmation', label: 'Sutvirtinimo suknelės' },
-  { value: 'extras', label: 'Priedai' },
+  { value: 'wedding', label: 'Wedding' },
+  { value: 'debs', label: 'Debs' },
+  { value: 'christening', label: 'Christening' },
+  { value: 'communion', label: 'Communion' },
+  { value: 'confirmation', label: 'Confirmation' },
+  { value: 'extras', label: 'Extras' },
 ]
 
 const EXTRAS_TYPES = [
-  { value: 'bags', label: 'Krepšiai' },
-  { value: 'veils', label: 'Vėlės' },
-  { value: 'belts', label: 'Diržai' },
-  { value: 'headbands', label: 'Galvos juostos' },
-  { value: 'tiaras', label: 'Tiara' },
+  { value: 'bags', label: 'Bags' },
+  { value: 'veils', label: 'Veils' },
+  { value: 'belts', label: 'Belts' },
+  { value: 'headbands', label: 'Headbands' },
+  { value: 'tiaras', label: 'Tiaras' },
   { value: 'cuffs_gloves', label: 'Cuffs/Gloves' },
 ]
 
@@ -44,8 +44,8 @@ const OCCASIONS = [
 ] as const
 
 const productSchema = z.object({
-  name: z.string().min(1, 'Pavadinimas privalomas'),
-  price: z.number().min(0, 'Kaina negali būti neigiama'),
+  name: z.string().min(1, 'Name is required'),
+  price: z.number().min(0, 'Price cannot be negative'),
   description: z.string().optional(),
   catalogue: z.enum(['wedding', 'debs', 'christening', 'communion', 'confirmation', 'extras']),
   extras_type: z.enum(['bags', 'veils', 'belts', 'headbands', 'tiaras', 'cuffs_gloves']).nullable().optional(),
@@ -58,7 +58,8 @@ type ProductFormData = z.infer<typeof productSchema>
 
 interface ProductFormProps {
   product?: Product | null
-  onSave: (data: ProductFormData & { imageFile?: File }) => void
+  initialCatalogue?: Catalogue | null
+  onSave: (data: ProductFormData & { imageFile?: File; imageUrl?: string | null }) => void
   onDelete?: () => void
   onCancel: () => void
   isLoading?: boolean
@@ -66,6 +67,7 @@ interface ProductFormProps {
 
 export function ProductForm({
   product,
+  initialCatalogue,
   onSave,
   onDelete,
   onCancel,
@@ -86,8 +88,8 @@ export function ProductForm({
     defaultValues: {
       name: product?.name || '',
       price: product?.price || 0,
-      description: product?.description || '',
-      catalogue: product?.catalogue || 'wedding',
+      description: '',
+      catalogue: product?.catalogue || initialCatalogue || 'wedding',
       extras_type: product?.extras_type || null,
       occasion_tags: product?.occasion_tags || [],
       is_active: product?.is_active ?? true,
@@ -129,8 +131,9 @@ export function ProductForm({
     onSave({
       ...data,
       imageFile: imageFile || undefined,
+      imageUrl: imagePreview,
     })
-  }, [imageFile, onSave])
+  }, [imageFile, imagePreview, onSave])
 
   const formValues = watch()
 
@@ -140,12 +143,12 @@ export function ProductForm({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>{product ? 'Redaguoti produktą' : 'Naujas produktas'}</CardTitle>
+            <CardTitle>{product ? 'Edit Product' : 'New Product'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Image Upload */}
             <div className="space-y-2">
-              <Label>Nuotrauka</Label>
+              <Label>Photo</Label>
               <div className="border-2 border-dashed rounded-lg p-4 text-center">
                 {imagePreview ? (
                   <div className="relative">
@@ -168,7 +171,7 @@ export function ProductForm({
                   <label className="cursor-pointer block">
                     <div className="flex flex-col items-center text-muted-foreground">
                       <ImageIcon className="w-12 h-12 mb-2" />
-                      <span className="text-sm">Paspauskite arba tempkite nuotrauką čia</span>
+                      <span className="text-sm">Click or drag a photo here</span>
                       <span className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP (max 5MB)</span>
                     </div>
                     <input
@@ -184,11 +187,11 @@ export function ProductForm({
 
             {/* Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Pavadinimas *</Label>
+              <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
                 {...register('name')}
-                placeholder="Produkto pavadinimas"
+                placeholder="Product name"
               />
               {errors.name && (
                 <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -197,7 +200,7 @@ export function ProductForm({
 
             {/* Price */}
             <div className="space-y-2">
-              <Label htmlFor="price">Kaina (€) *</Label>
+              <Label htmlFor="price">Price (€) *</Label>
               <Input
                 id="price"
                 type="number"
@@ -212,7 +215,7 @@ export function ProductForm({
 
             {/* Catalogue */}
             <div className="space-y-2">
-              <Label htmlFor="catalogue">Katalogas *</Label>
+              <Label htmlFor="catalogue">Catalogue *</Label>
               <select
                 id="catalogue"
                 {...register('catalogue')}
@@ -229,13 +232,13 @@ export function ProductForm({
             {/* Extras Type (only for extras catalogue) */}
             {isExtras && (
               <div className="space-y-2">
-                <Label htmlFor="extras_type">Priedo tipas</Label>
+                <Label htmlFor="extras_type">Extras Type</Label>
                 <select
                   id="extras_type"
                   {...register('extras_type')}
                   className="w-full border rounded-md px-3 py-2"
                 >
-                  <option value="">Pasirinkite tipą</option>
+                  <option value="">Select type</option>
                   {EXTRAS_TYPES.map((type) => (
                     <option key={type.value} value={type.value}>
                       {type.label}
@@ -247,7 +250,7 @@ export function ProductForm({
 
             {/* Occasion Tags */}
             <div className="space-y-2">
-              <Label>Pritaikymo progos</Label>
+              <Label>Occasion Tags</Label>
               <div className="flex flex-wrap gap-2">
                 {OCCASIONS.map((occasion) => (
                   <Badge
@@ -264,18 +267,18 @@ export function ProductForm({
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Aprašymas</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 {...register('description')}
-                placeholder="Produkto aprašymas..."
+                placeholder="Product description..."
                 rows={3}
               />
             </div>
 
             {/* Display Order */}
             <div className="space-y-2">
-              <Label htmlFor="display_order">Rodymo eilės numeris</Label>
+              <Label htmlFor="display_order">Display Order</Label>
               <Input
                 id="display_order"
                 type="number"
@@ -286,7 +289,7 @@ export function ProductForm({
             {/* Active Toggle */}
             <div className="flex items-center gap-2">
               <Switch id="is_active" {...register('is_active')} />
-              <Label htmlFor="is_active">Aktyvus</Label>
+              <Label htmlFor="is_active">Active</Label>
             </div>
 
             {/* Actions */}
@@ -297,11 +300,11 @@ export function ProductForm({
                 onClick={() => setShowPreview(!showPreview)}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                {showPreview ? 'Slėpti peržiūrą' : 'Peržiūra'}
+                {showPreview ? 'Hide Preview' : 'Preview'}
               </Button>
               <Button type="submit" disabled={isLoading} className="flex-1">
                 <Save className="w-4 h-4 mr-2" />
-                {isLoading ? 'Saugoma...' : product ? 'Išsaugoti' : 'Sukurti'}
+                {isLoading ? 'Saving...' : product ? 'Save' : 'Create'}
               </Button>
               {product && onDelete && (
                 <Button
@@ -314,7 +317,7 @@ export function ProductForm({
                 </Button>
               )}
               <Button type="button" variant="ghost" onClick={onCancel}>
-                Atšaukti
+                Cancel
               </Button>
             </div>
           </CardContent>
@@ -325,7 +328,7 @@ export function ProductForm({
       {showPreview && (
         <Card>
           <CardHeader>
-            <CardTitle>Peržiūra</CardTitle>
+            <CardTitle>Preview</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg overflow-hidden">
@@ -341,7 +344,7 @@ export function ProductForm({
                 )}
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-lg">{formValues.name || 'Produkto pavadinimas'}</h3>
+                <h3 className="font-semibold text-lg">{formValues.name || 'Product name'}</h3>
                 <p className="text-rose-600 font-bold text-xl mt-1">
                   €{formValues.price?.toFixed(2) || '0.00'}
                 </p>
@@ -359,7 +362,7 @@ export function ProductForm({
                 )}
                 <div className="flex items-center gap-2 mt-4">
                   <Badge variant={formValues.is_active ? 'default' : 'secondary'}>
-                    {formValues.is_active ? 'Aktyvus' : 'Neaktyvus'}
+                    {formValues.is_active ? 'Active' : 'Inactive'}
                   </Badge>
                   <Badge variant="outline">
                     {CATALOGUES.find((c) => c.value === formValues.catalogue)?.label}
