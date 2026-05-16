@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Section1ClientInfo } from './Section1ClientInfo'
 import { Section2DressSelect } from './Section2DressSelect'
-import { Section3Alterations } from './Section3Alterations'
+import { MIN_ALTERATION_ROWS, Section3Alterations, type AlterationRow } from './Section3Alterations'
 import { Section4Extras } from './Section4Extras'
 import { Section5Fitting } from './Section5Fitting'
 import { Section6OrderList } from './Section6OrderList'
@@ -12,6 +12,27 @@ import type { Database } from '@/lib/supabase/types'
 
 type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 const CLIENT_INFO_DRAFT_KEY = 'gigafashion-client-info-draft'
+const ALTERATIONS_DRAFT_KEY = 'gigafashion-alterations-draft'
+
+const createInitialAlterationRows = (): AlterationRow[] =>
+  Array.from({ length: MIN_ALTERATION_ROWS }, () => ({
+    id: crypto.randomUUID(),
+    description: '',
+    price: '',
+    isConfirmed: false,
+  }))
+
+const getInitialAlterationRows = (): AlterationRow[] => {
+  try {
+    const savedDraft = window.localStorage.getItem(ALTERATIONS_DRAFT_KEY)
+    const parsedDraft = savedDraft ? JSON.parse(savedDraft) : null
+    return Array.isArray(parsedDraft) && parsedDraft.length > 0
+      ? parsedDraft
+      : createInitialAlterationRows()
+  } catch {
+    return createInitialAlterationRows()
+  }
+}
 
 interface OrderItem {
   id: string
@@ -41,6 +62,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
+  const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(getInitialAlterationRows)
   const [isSaving, setIsSaving] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
   const [clientInfoData, setClientInfoData] = useState<Partial<ClientInfoFormData>>(() => {
@@ -74,6 +96,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     window.localStorage.setItem(CLIENT_INFO_DRAFT_KEY, JSON.stringify(clientInfoData))
   }, [clientInfoData])
 
+  useEffect(() => {
+    window.localStorage.setItem(ALTERATIONS_DRAFT_KEY, JSON.stringify(alterationRows))
+  }, [alterationRows])
+
   // Calculate total amount from order items
   const totalAmount = orderItems.reduce((sum, item) => sum + item.price, 0)
 
@@ -82,19 +108,56 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     orderDate: string
   }) => {
     setIsSaving(true)
-    console.log('Saving order:', {
-      staffMember: data.staffMember,
-      orderDate: data.orderDate,
-      totalAmount,
-      items: orderItems,
-    })
-    // TODO: Implement actual save logic with Supabase
-    // await supabase.from('orders').insert(...)
-    setTimeout(() => {
+    try {
+      const activeItems = orderItems.filter(item => !item.deleted)
+      const primaryDress = activeItems.find(item => item.type === 'dress' || item.type === 'custom')
+      const response = await fetch('/api/save-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderNumber,
+          clientName: clientInfoData.clientName,
+          phone: clientInfoData.phone,
+          visitDate: clientInfoData.visitDate,
+          occasion: clientInfoData.occasion,
+          occasionCustom: clientInfoData.occasionCustom,
+          eventDate: clientInfoData.eventDate,
+          dressType: primaryDress?.type === 'custom' ? 'custom' : 'catalogue',
+          staffMember: data.staffMember,
+          totalAmount,
+          totalPaid: 0,
+          items: activeItems,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.details || result.error || 'Failed to save order')
+      }
+
       window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
+      window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
       setIsSaving(false)
-      alert('Order saved!')
-    }, 1000)
+      setClientInfoData({
+        clientName: '',
+        phone: '',
+        visitDate: new Date().toISOString().slice(0, 16),
+        occasion: undefined,
+        occasionCustom: '',
+        eventDate: '',
+      })
+      setSelectedOccasion(undefined)
+      setOrderItems([])
+      setAlterationRows(createInitialAlterationRows())
+      setOrderNumber('')
+      alert(`Order saved: ${result.orderNumber}`)
+    } catch (error) {
+      setIsSaving(false)
+      alert(error instanceof Error ? error.message : 'Failed to save order')
+    }
   }
 
   const toggleSection = (section: number) => {
@@ -145,6 +208,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     }
     setOrderItems(prev => [...prev, orderItem])
     console.log('Added alteration to order:', orderItem)
+  }
+
+  const handleRemoveAlterationFromOrder = (id: string) => {
+    setOrderItems(prev => prev.filter(item => item.id !== id))
   }
   
   const handleAddExtraToOrder = (item: {
@@ -247,11 +314,17 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           <span>3. Alterations</span>
           <span>{isExpanded[3] ? '−' : '+'}</span>
         </button>
-        {isExpanded[3] && (
-          <div className="border-t border-gray-200 p-4">
-            <Section3Alterations onAddToOrder={handleAddAlterationToOrder} />
-          </div>
-        )}
+        <div
+          className="border-t border-gray-200 p-4"
+          style={{ display: isExpanded[3] ? 'block' : 'none' }}
+        >
+          <Section3Alterations
+            onAddToOrder={handleAddAlterationToOrder}
+            onRemoveFromOrder={handleRemoveAlterationFromOrder}
+            rows={alterationRows}
+            setRows={setAlterationRows}
+          />
+        </div>
       </div>
 
       {/* Section 4 - Extras */}

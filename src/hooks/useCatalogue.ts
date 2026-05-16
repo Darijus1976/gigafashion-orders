@@ -9,7 +9,7 @@ type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 interface UseCatalogueOptions {
   catalogue?: Catalogue
   occasion?: Occasion | null
-  extrasType?: 'bags' | 'veils' | 'belts' | 'headbands'
+  extrasType?: 'bags' | 'veils' | 'belts' | 'headbands' | 'tiaras' | 'cuffs_gloves'
   enabled?: boolean
 }
 

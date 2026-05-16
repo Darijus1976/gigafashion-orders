@@ -51,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (orderData.items && orderData.items.length > 0) {
       const itemsToInsert = orderData.items.map((item: any, index: number) => ({
         order_id: order.id,
-        item_type: item.itemType,
+        item_type: item.type,
         description: item.description,
         price: item.price || 0,
         product_id: item.productId || null,

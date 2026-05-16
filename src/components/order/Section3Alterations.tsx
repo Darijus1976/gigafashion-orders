@@ -1,10 +1,9 @@
-import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Plus, Trash2, Check } from 'lucide-react'
 
-interface AlterationRow {
+export interface AlterationRow {
   id: string
   description: string
   price: string
@@ -19,25 +18,18 @@ interface AlterationItem {
 
 interface Section3AlterationsProps {
   onAddToOrder: (item: AlterationItem) => void
+  onRemoveFromOrder: (id: string) => void
+  rows: AlterationRow[]
+  setRows: React.Dispatch<React.SetStateAction<AlterationRow[]>>
 }
 
-const MIN_ROWS = 5
-const MAX_ROWS = 10
+export const MIN_ALTERATION_ROWS = 5
+export const MAX_ALTERATION_ROWS = 10
 
-export function Section3Alterations({ onAddToOrder }: Section3AlterationsProps) {
-  const [rows, setRows] = useState<AlterationRow[]>(() => {
-    // Initialize with 5 empty rows
-    return Array.from({ length: MIN_ROWS }, (_, i) => ({
-      id: crypto.randomUUID(),
-      description: '',
-      price: '',
-      isConfirmed: false,
-    }))
-  })
-
+export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, setRows }: Section3AlterationsProps) {
   const confirmedCount = rows.filter(r => r.isConfirmed).length
-  const canAddMore = rows.length < MAX_ROWS
-  const canRemove = rows.length > MIN_ROWS
+  const canAddMore = rows.length < MAX_ALTERATION_ROWS
+  const canRemove = rows.length > MIN_ALTERATION_ROWS
 
   const updateRow = (id: string, field: keyof AlterationRow, value: string) => {
     setRows(prev =>
@@ -45,12 +37,14 @@ export function Section3Alterations({ onAddToOrder }: Section3AlterationsProps) 
         row.id === id ? { ...row, [field]: value, isConfirmed: false } : row
       )
     )
+    onRemoveFromOrder(id)
   }
 
   const confirmRow = (id: string) => {
     const row = rows.find(r => r.id === id)
     if (row && row.description.trim()) {
       const price = parseFloat(row.price) || 0
+      onRemoveFromOrder(row.id)
       onAddToOrder({
         id: row.id,
         description: row.description,
@@ -77,8 +71,17 @@ export function Section3Alterations({ onAddToOrder }: Section3AlterationsProps) 
   }
 
   const removeRow = (id: string) => {
+    onRemoveFromOrder(id)
     if (canRemove) {
       setRows(prev => prev.filter(row => row.id !== id))
+    } else {
+      setRows(prev =>
+        prev.map(row =>
+          row.id === id
+            ? { ...row, description: '', price: '', isConfirmed: false }
+            : row
+        )
+      )
     }
   }
 
@@ -164,7 +167,7 @@ export function Section3Alterations({ onAddToOrder }: Section3AlterationsProps) 
                 <span className="text-xs text-green-600 font-medium">Pridėta</span>
               )}
               
-              {canRemove && (
+              {(canRemove || row.description || row.price || row.isConfirmed) && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -191,8 +194,8 @@ export function Section3Alterations({ onAddToOrder }: Section3AlterationsProps) 
         >
           <Plus className="w-4 h-4 mr-2" />
           Add row
-          {rows.length >= MAX_ROWS && (
-            <span className="ml-2 text-xs text-muted-foreground">(max {MAX_ROWS})</span>
+          {rows.length >= MAX_ALTERATION_ROWS && (
+            <span className="ml-2 text-xs text-muted-foreground">(max {MAX_ALTERATION_ROWS})</span>
           )}
         </Button>
 
