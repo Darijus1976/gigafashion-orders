@@ -283,8 +283,24 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           description: row.description.trim(),
           price: parseFloat(row.price) || 0,
         }))
-      const activeItemsWithoutAlterations = activeItems.filter(item => item.type !== 'alteration')
-      const itemsToSave = [...activeItemsWithoutAlterations, ...alterationItemsFromRows]
+      const fittingItemsFromSessions: OrderItem[] = fittingSessions.flatMap(session =>
+        session.notes
+          .filter(note => note.description.trim())
+          .map(note => ({
+            id: note.id,
+            type: 'fitting',
+            description: `Fitting (${session.date}): ${note.description.trim()}`,
+            price: parseFloat(note.price) || 0,
+          }))
+      )
+      const activeItemsWithoutGeneratedItems = activeItems.filter(
+        item => item.type !== 'alteration' && item.type !== 'fitting'
+      )
+      const itemsToSave = [
+        ...activeItemsWithoutGeneratedItems,
+        ...alterationItemsFromRows,
+        ...fittingItemsFromSessions,
+      ]
       const primaryDress = itemsToSave.find(item => item.type === 'dress' || item.type === 'custom')
       const response = await fetch('/api/save-order', {
         method: 'POST',
@@ -328,6 +344,11 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
       window.localStorage.removeItem(FITTING_DRAFT_KEY)
       setIsSaving(false)
+      if (initialOrderNumber) {
+        alert(`Order saved: ${result.orderNumber}`)
+        return
+      }
+
       setClientInfoData({
         clientName: '',
         phone: '',

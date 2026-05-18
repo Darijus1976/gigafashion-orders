@@ -128,15 +128,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         sort_order: index,
       }));
 
+      const { error: deleteFittingError } = await supabase
+        .from('fitting_sessions')
+        .delete()
+        .eq('order_id', order.id);
+
+      if (deleteFittingError) {
+        console.error('Error replacing fitting sessions:', deleteFittingError);
+        return res.status(500).json({
+          error: 'Failed to replace fitting sessions',
+          details: deleteFittingError.message,
+        });
+      }
+
       if (fittingRows.length > 0) {
         const { error: fittingError } = await supabase
           .from('fitting_sessions')
-          .upsert(fittingRows, {
-            onConflict: 'order_id,session_key',
-          });
+          .insert(fittingRows);
 
         if (fittingError) {
           console.error('Error saving fitting sessions:', fittingError);
+          return res.status(500).json({
+            error: 'Failed to save fitting sessions',
+            details: fittingError.message,
+          });
         }
       }
     }
