@@ -7,6 +7,7 @@ import { MIN_FITTING_NOTES, Section5Fitting, type FittingSession } from './Secti
 import { Section6OrderList } from './Section6OrderList'
 import { OrderFormFooter } from './OrderFormFooter'
 import { getNextOrderNumber } from '@/lib/utils/orderNumber'
+import { clientInfoSchema } from '@/lib/utils/validation'
 import type { ClientInfoFormData } from '@/lib/utils/validation'
 import type { Database } from '@/lib/supabase/types'
 
@@ -195,12 +196,47 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   // Calculate total amount from order items
   const totalAmount = orderItems.reduce((sum, item) => sum + item.price, 0)
 
+  const resetToBlankOrder = async () => {
+    window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
+    window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
+    window.localStorage.removeItem(FITTING_DRAFT_KEY)
+    setClientInfoData({
+      clientName: '',
+      phone: '',
+      visitDate: new Date().toISOString().slice(0, 16),
+      occasion: undefined,
+      occasionCustom: '',
+      eventDate: '',
+    })
+    setSelectedOccasion(undefined)
+    setOrderItems([])
+    setAlterationRows(createInitialAlterationRows())
+    setFittingSessions(createInitialFittingSessions())
+    setOrderNumber('')
+
+    if (!initialOrderNumber) {
+      try {
+        setOrderNumber(await getNextOrderNumber())
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+
   const handleSaveOrder = async (data: {
     staffMember: string
     orderDate: string
   }) => {
     setIsSaving(true)
     try {
+      const clientInfoResult = clientInfoSchema.safeParse(clientInfoData)
+
+      if (!clientInfoResult.success) {
+        setIsExpanded(prev => ({ ...prev, 1: true }))
+        const firstIssue = clientInfoResult.error.issues[0]
+        throw new Error(firstIssue?.message || 'Please complete client information before saving')
+      }
+
       const activeItems = orderItems.filter(item => !item.deleted)
       const primaryDress = activeItems.find(item => item.type === 'dress' || item.type === 'custom')
       const response = await fetch('/api/save-order', {
@@ -210,12 +246,12 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
         },
         body: JSON.stringify({
           orderNumber,
-          clientName: clientInfoData.clientName,
-          phone: clientInfoData.phone,
-          visitDate: clientInfoData.visitDate,
-          occasion: clientInfoData.occasion,
-          occasionCustom: clientInfoData.occasionCustom,
-          eventDate: clientInfoData.eventDate,
+          clientName: clientInfoResult.data.clientName,
+          phone: clientInfoResult.data.phone,
+          visitDate: clientInfoResult.data.visitDate,
+          occasion: clientInfoResult.data.occasion,
+          occasionCustom: clientInfoResult.data.occasionCustom,
+          eventDate: clientInfoResult.data.eventDate,
           dressType: primaryDress?.type === 'custom' ? 'custom' : 'catalogue',
           staffMember: data.staffMember,
           totalAmount,
@@ -256,7 +292,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       setOrderItems([])
       setAlterationRows(createInitialAlterationRows())
       setFittingSessions(createInitialFittingSessions())
-      setOrderNumber('')
+      setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
       alert(`Order saved: ${result.orderNumber}`)
     } catch (error) {
       setIsSaving(false)
@@ -360,14 +396,26 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     <div className="space-y-4 pb-32">
       {/* Order Number Header */}
       <div className="flex items-center justify-between p-4 bg-rose-50 rounded-lg border border-rose-200">
-        <h1 className="text-xl font-bold text-rose-800">
-          New Order
-        </h1>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">Order Number</p>
-          <p className="text-lg font-bold text-rose-600">
-            {orderNumber || 'Generating...'}
-          </p>
+        <div>
+          <h1 className="text-3xl font-bold text-rose-700">Giga Fashion</h1>
+          <p className="text-muted-foreground">Kliento užsakymo forma</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {!initialOrderNumber && (
+            <button
+              type="button"
+              onClick={resetToBlankOrder}
+              className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+            >
+              New Blank Order
+            </button>
+          )}
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Order Number</p>
+            <p className="text-lg font-bold text-rose-600">
+              {orderNumber || 'Generating...'}
+            </p>
+          </div>
         </div>
       </div>
 
