@@ -182,14 +182,33 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           eventDate: order.event_date || '',
         })
         setSelectedOccasion(order.occasion)
-        setOrderItems(
-          result.items.map((item: any) => ({
+        const loadedItems = result.items.map((item: any) => ({
             id: item.id,
             type: item.item_type,
             description: item.description,
             price: Number(item.price) || 0,
             productId: item.product_id || undefined,
           }))
+        setOrderItems(loadedItems)
+        const loadedAlterations = loadedItems
+          .filter((item: OrderItem) => item.type === 'alteration')
+          .map((item: OrderItem) => ({
+            id: item.id,
+            description: item.description,
+            price: String(item.price),
+            isConfirmed: true,
+          }))
+        setAlterationRows(
+          loadedAlterations.length > 0
+            ? loadedAlterations.concat(
+              Array.from({ length: Math.max(0, MIN_ALTERATION_ROWS - loadedAlterations.length) }, () => ({
+                id: crypto.randomUUID(),
+                description: '',
+                price: '',
+                isConfirmed: false,
+              }))
+            )
+            : createInitialAlterationRows()
         )
         setFittingSessions(
           Array.isArray(result.fittingSessions) && result.fittingSessions.length > 0
@@ -249,7 +268,17 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       }
 
       const activeItems = orderItems.filter(item => !item.deleted)
-      const primaryDress = activeItems.find(item => item.type === 'dress' || item.type === 'custom')
+      const alterationItemsFromRows: OrderItem[] = alterationRows
+        .filter(row => row.description.trim())
+        .map(row => ({
+          id: row.id,
+          type: 'alteration',
+          description: row.description.trim(),
+          price: parseFloat(row.price) || 0,
+        }))
+      const activeItemsWithoutAlterations = activeItems.filter(item => item.type !== 'alteration')
+      const itemsToSave = [...activeItemsWithoutAlterations, ...alterationItemsFromRows]
+      const primaryDress = itemsToSave.find(item => item.type === 'dress' || item.type === 'custom')
       const response = await fetch('/api/save-order', {
         method: 'POST',
         headers: {
@@ -267,7 +296,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           staffMember: data.staffMember,
           totalAmount,
           totalPaid: 0,
-          items: activeItems,
+          items: itemsToSave,
           fittingSessions,
           isExistingOrder: Boolean(initialOrderNumber),
         }),
