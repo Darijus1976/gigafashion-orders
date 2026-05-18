@@ -5,12 +5,6 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -18,6 +12,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json({
+        error: 'Missing Supabase environment variables',
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
     const orderData = req.body;
 
     const { data: order, error: orderError } = await supabase
@@ -128,10 +129,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (fittingError) {
           console.error('Error saving fitting sessions:', fittingError);
-          return res.status(500).json({
-            error: 'Failed to save fitting sessions',
-            details: fittingError.message,
-          });
         }
       }
     }

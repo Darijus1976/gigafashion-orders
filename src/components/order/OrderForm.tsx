@@ -210,10 +210,19 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
         }),
       })
 
-      const result = await response.json()
+      const responseText = await response.text()
+      let result: { orderNumber?: string; error?: string; details?: string } = {}
+
+      if (responseText) {
+        try {
+          result = JSON.parse(responseText)
+        } catch {
+          throw new Error(responseText)
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(result.details || result.error || 'Failed to save order')
+        throw new Error(result.details || result.error || responseText || 'Failed to save order')
       }
 
       window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
