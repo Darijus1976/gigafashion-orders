@@ -98,6 +98,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     initialOrderNumber ? createInitialFittingSessions : getInitialFittingSessions
   )
   const [isSaving, setIsSaving] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
   const [clientInfoData, setClientInfoData] = useState<Partial<ClientInfoFormData>>(() => {
     const initialData = {
@@ -150,6 +151,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
 
     const loadExistingOrder = async () => {
       try {
+        setLoadError(null)
         const response = await fetch(`/api/get-order?orderNumber=${encodeURIComponent(initialOrderNumber)}`)
         const responseText = await response.text()
         let result: {
@@ -173,6 +175,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
         }
 
         const order = result.order
+        if (!order) {
+          throw new Error('Order response did not include order data')
+        }
+
         setClientInfoData({
           clientName: order.client_name,
           phone: order.phone,
@@ -182,7 +188,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           eventDate: order.event_date || '',
         })
         setSelectedOccasion(order.occasion)
-        const loadedItems = result.items.map((item: any) => ({
+        const loadedItems = (Array.isArray(result.items) ? result.items : []).map((item: any) => ({
             id: item.id,
             type: item.item_type,
             description: item.description,
@@ -217,6 +223,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
         )
       } catch (error) {
         console.error('Error loading order:', error)
+        setLoadError(error instanceof Error ? error.message : 'Failed to load order')
       }
     }
 
@@ -435,6 +442,12 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
 
   return (
     <div className="space-y-4 pb-32">
+      {loadError && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          Failed to load saved order: {loadError}
+        </div>
+      )}
+
       {/* Order Number Header */}
       <div className="flex items-center justify-between p-4 bg-rose-50 rounded-lg border border-rose-200">
         <div>

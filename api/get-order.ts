@@ -26,7 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from('orders')
       .select('*')
       .eq('order_number', orderNumber)
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (orderError || !order) {
       return res.status(404).json({
