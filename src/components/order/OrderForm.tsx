@@ -139,10 +139,25 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     const loadExistingOrder = async () => {
       try {
         const response = await fetch(`/api/get-order?orderNumber=${encodeURIComponent(initialOrderNumber)}`)
-        const result = await response.json()
+        const responseText = await response.text()
+        let result: {
+          order?: any
+          items?: any[]
+          fittingSessions?: FittingSession[]
+          error?: string
+          details?: string
+        } = {}
+
+        if (responseText) {
+          try {
+            result = JSON.parse(responseText)
+          } catch {
+            throw new Error(responseText)
+          }
+        }
 
         if (!response.ok) {
-          throw new Error(result.details || result.error || 'Failed to load order')
+          throw new Error(result.details || result.error || responseText || 'Failed to load order')
         }
 
         const order = result.order
