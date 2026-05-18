@@ -94,6 +94,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    if (Array.isArray(orderData.fittingSessions)) {
+      const fittingRows = orderData.fittingSessions.map((session: any, index: number) => ({
+        order_id: order.id,
+        session_key: session.id,
+        fitting_date: session.date || new Date().toISOString().split('T')[0],
+        notes: Array.isArray(session.notes) ? session.notes : [],
+        photo_urls: Array.isArray(session.photoUrls) ? session.photoUrls : [],
+        sort_order: index,
+      }));
+
+      if (fittingRows.length > 0) {
+        const { error: fittingError } = await supabase
+          .from('fitting_sessions')
+          .upsert(fittingRows, {
+            onConflict: 'order_id,session_key',
+          });
+
+        if (fittingError) {
+          console.error('Error saving fitting sessions:', fittingError);
+          return res.status(500).json({
+            error: 'Failed to save fitting sessions',
+            details: fittingError.message,
+          });
+        }
+      }
+    }
+
     // TODO: Implement remaining steps:
     // 2. PDF Generation — Full (Staff)
     // 3. Google Drive — Staff PDF

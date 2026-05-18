@@ -3,7 +3,7 @@ import { Section1ClientInfo } from './Section1ClientInfo'
 import { Section2DressSelect } from './Section2DressSelect'
 import { MIN_ALTERATION_ROWS, Section3Alterations, type AlterationRow } from './Section3Alterations'
 import { Section4Extras } from './Section4Extras'
-import { Section5Fitting } from './Section5Fitting'
+import { MIN_FITTING_NOTES, Section5Fitting, type FittingSession } from './Section5Fitting'
 import { Section6OrderList } from './Section6OrderList'
 import { OrderFormFooter } from './OrderFormFooter'
 import { getNextOrderNumber } from '@/lib/utils/orderNumber'
@@ -13,6 +13,7 @@ import type { Database } from '@/lib/supabase/types'
 type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 const CLIENT_INFO_DRAFT_KEY = 'gigafashion-client-info-draft'
 const ALTERATIONS_DRAFT_KEY = 'gigafashion-alterations-draft'
+const FITTING_DRAFT_KEY = 'gigafashion-fitting-draft'
 
 const createInitialAlterationRows = (): AlterationRow[] =>
   Array.from({ length: MIN_ALTERATION_ROWS }, () => ({
@@ -31,6 +32,33 @@ const getInitialAlterationRows = (): AlterationRow[] => {
       : createInitialAlterationRows()
   } catch {
     return createInitialAlterationRows()
+  }
+}
+
+const createInitialFittingSessions = (): FittingSession[] => [
+  {
+    id: crypto.randomUUID(),
+    date: new Date().toISOString().split('T')[0],
+    notes: Array.from({ length: MIN_FITTING_NOTES }, () => ({
+      id: crypto.randomUUID(),
+      description: '',
+      price: '',
+      isConfirmed: false,
+    })),
+    photoUrls: [],
+    isActive: true,
+  },
+]
+
+const getInitialFittingSessions = (): FittingSession[] => {
+  try {
+    const savedDraft = window.localStorage.getItem(FITTING_DRAFT_KEY)
+    const parsedDraft = savedDraft ? JSON.parse(savedDraft) : null
+    return Array.isArray(parsedDraft) && parsedDraft.length > 0
+      ? parsedDraft
+      : createInitialFittingSessions()
+  } catch {
+    return createInitialFittingSessions()
   }
 }
 
@@ -63,6 +91,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(getInitialAlterationRows)
+  const [fittingSessions, setFittingSessions] = useState<FittingSession[]>(getInitialFittingSessions)
   const [isSaving, setIsSaving] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
   const [clientInfoData, setClientInfoData] = useState<Partial<ClientInfoFormData>>(() => {
@@ -100,6 +129,54 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     window.localStorage.setItem(ALTERATIONS_DRAFT_KEY, JSON.stringify(alterationRows))
   }, [alterationRows])
 
+  useEffect(() => {
+    window.localStorage.setItem(FITTING_DRAFT_KEY, JSON.stringify(fittingSessions))
+  }, [fittingSessions])
+
+  useEffect(() => {
+    if (!initialOrderNumber) return
+
+    const loadExistingOrder = async () => {
+      try {
+        const response = await fetch(`/api/get-order?orderNumber=${encodeURIComponent(initialOrderNumber)}`)
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.details || result.error || 'Failed to load order')
+        }
+
+        const order = result.order
+        setClientInfoData({
+          clientName: order.client_name,
+          phone: order.phone,
+          visitDate: order.visit_date?.slice(0, 16) || '',
+          occasion: order.occasion,
+          occasionCustom: order.occasion_custom || '',
+          eventDate: order.event_date || '',
+        })
+        setSelectedOccasion(order.occasion)
+        setOrderItems(
+          result.items.map((item: any) => ({
+            id: item.id,
+            type: item.item_type,
+            description: item.description,
+            price: Number(item.price) || 0,
+            productId: item.product_id || undefined,
+          }))
+        )
+        setFittingSessions(
+          Array.isArray(result.fittingSessions) && result.fittingSessions.length > 0
+            ? result.fittingSessions
+            : createInitialFittingSessions()
+        )
+      } catch (error) {
+        console.error('Error loading order:', error)
+      }
+    }
+
+    loadExistingOrder()
+  }, [initialOrderNumber])
+
   // Calculate total amount from order items
   const totalAmount = orderItems.reduce((sum, item) => sum + item.price, 0)
 
@@ -129,6 +206,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           totalAmount,
           totalPaid: 0,
           items: activeItems,
+          fittingSessions,
         }),
       })
 
@@ -140,6 +218,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
 
       window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
       window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
+      window.localStorage.removeItem(FITTING_DRAFT_KEY)
       setIsSaving(false)
       setClientInfoData({
         clientName: '',
@@ -152,6 +231,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       setSelectedOccasion(undefined)
       setOrderItems([])
       setAlterationRows(createInitialAlterationRows())
+      setFittingSessions(createInitialFittingSessions())
       setOrderNumber('')
       alert(`Order saved: ${result.orderNumber}`)
     } catch (error) {
@@ -246,6 +326,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
     }
     setOrderItems(prev => [...prev, orderItem])
     console.log('Added fitting to order:', orderItem)
+  }
+
+  const handleRemoveFittingFromOrder = (id: string) => {
+    setOrderItems(prev => prev.filter(item => item.id !== id))
   }
 
   return (
@@ -352,14 +436,18 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           <span>5. Fitting</span>
           <span>{isExpanded[5] ? '−' : '+'}</span>
         </button>
-        {isExpanded[5] && (
-          <div className="border-t border-gray-200 p-4">
-            <Section5Fitting 
-              onAddToOrder={handleAddFittingToOrder}
-              orderId={orderNumber}
-            />
-          </div>
-        )}
+        <div
+          className="border-t border-gray-200 p-4"
+          style={{ display: isExpanded[5] ? 'block' : 'none' }}
+        >
+          <Section5Fitting
+            onAddToOrder={handleAddFittingToOrder}
+            onRemoveFromOrder={handleRemoveFittingFromOrder}
+            orderId={orderNumber}
+            sessions={fittingSessions}
+            setSessions={setFittingSessions}
+          />
+        </div>
       </div>
 
       {/* Section 6 - Order List */}

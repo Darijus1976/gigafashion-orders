@@ -64,6 +64,21 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['payments']['Row'], 'id'>
         Update: Partial<Database['public']['Tables']['payments']['Insert']>
       }
+      fitting_sessions: {
+        Row: {
+          id: string
+          order_id: string
+          session_key: string
+          fitting_date: string
+          notes: any[]
+          photo_urls: string[]
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['fitting_sessions']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Database['public']['Tables']['fitting_sessions']['Insert']>
+      }
       order_photos: {
         Row: {
           id: string

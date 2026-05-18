@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -7,17 +6,18 @@ import { Plus, Trash2, Check, Calendar, Scissors } from 'lucide-react'
 import { format } from 'date-fns'
 import { ImageUploader } from '@/components/annotation/ImageUploader'
 
-interface FittingNote {
+export interface FittingNote {
   id: string
   description: string
   price: string
   isConfirmed: boolean
 }
 
-interface FittingSession {
+export interface FittingSession {
   id: string
   date: string
   notes: FittingNote[]
+  photoUrls: string[]
   isActive: boolean
 }
 
@@ -30,27 +30,16 @@ interface FittingItem {
 
 interface Section5FittingProps {
   onAddToOrder: (item: FittingItem) => void
+  onRemoveFromOrder: (id: string) => void
   orderId: string
+  sessions: FittingSession[]
+  setSessions: React.Dispatch<React.SetStateAction<FittingSession[]>>
 }
 
-const MIN_NOTES = 3
-const MAX_NOTES = 8
+export const MIN_FITTING_NOTES = 3
+export const MAX_FITTING_NOTES = 8
 
-export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps) {
-  const [sessions, setSessions] = useState<FittingSession[]>([
-    {
-      id: crypto.randomUUID(),
-      date: format(new Date(), 'yyyy-MM-dd'),
-      notes: Array.from({ length: MIN_NOTES }, () => ({
-        id: crypto.randomUUID(),
-        description: '',
-        price: '',
-        isConfirmed: false,
-      })),
-      isActive: true,
-    },
-  ])
-
+export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sessions, setSessions }: Section5FittingProps) {
   const activeSession = sessions.find(s => s.isActive) || sessions[0]
 
   const updateNote = (sessionId: string, noteId: string, field: keyof FittingNote, value: string) => {
@@ -66,6 +55,7 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
           : session
       )
     )
+    onRemoveFromOrder(noteId)
   }
 
   const confirmNote = (sessionId: string, noteId: string) => {
@@ -75,6 +65,7 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
     
     if (note && note.description.trim()) {
       const price = parseFloat(note.price) || 0
+      onRemoveFromOrder(note.id)
       onAddToOrder({
         id: note.id,
         description: `Fitting (${format(new Date(session.date), 'yyyy-MM-dd')}): ${note.description}`,
@@ -97,7 +88,7 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
 
   const addNote = (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId)
-    if (session && session.notes.length < MAX_NOTES) {
+    if (session && session.notes.length < MAX_FITTING_NOTES) {
       setSessions(prev =>
         prev.map(s =>
           s.id === sessionId
@@ -121,11 +112,27 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
 
   const removeNote = (sessionId: string, noteId: string) => {
     const session = sessions.find(s => s.id === sessionId)
-    if (session && session.notes.length > MIN_NOTES) {
+    onRemoveFromOrder(noteId)
+    if (session && session.notes.length > MIN_FITTING_NOTES) {
       setSessions(prev =>
         prev.map(s =>
           s.id === sessionId
             ? { ...s, notes: s.notes.filter(n => n.id !== noteId) }
+            : s
+        )
+      )
+    } else {
+      setSessions(prev =>
+        prev.map(s =>
+          s.id === sessionId
+            ? {
+                ...s,
+                notes: s.notes.map(n =>
+                  n.id === noteId
+                    ? { ...n, description: '', price: '', isConfirmed: false }
+                    : n
+                ),
+              }
             : s
         )
       )
@@ -138,18 +145,29 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
     )
   }
 
+  const addSessionPhotos = (sessionId: string, urls: string[]) => {
+    setSessions(prev =>
+      prev.map(s =>
+        s.id === sessionId
+          ? { ...s, photoUrls: [...(s.photoUrls || []), ...urls] }
+          : s
+      )
+    )
+  }
+
   const addNewSession = () => {
     // Deactivate current sessions
     setSessions(prev =>
       prev.map(s => ({ ...s, isActive: false })).concat({
         id: crypto.randomUUID(),
         date: format(new Date(), 'yyyy-MM-dd'),
-        notes: Array.from({ length: MIN_NOTES }, () => ({
+        notes: Array.from({ length: MIN_FITTING_NOTES }, () => ({
           id: crypto.randomUUID(),
           description: '',
           price: '',
           isConfirmed: false,
         })),
+        photoUrls: [],
         isActive: true,
       })
     )
@@ -268,7 +286,7 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
                     <span className="text-xs text-green-600 font-medium">Pridėta</span>
                   )}
                   
-                  {activeSession.notes.length > MIN_NOTES && (
+                  {(activeSession.notes.length > MIN_FITTING_NOTES || note.description || note.price || note.isConfirmed) && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -289,25 +307,41 @@ export function Section5Fitting({ onAddToOrder, orderId }: Section5FittingProps)
             type="button"
             variant="outline"
             onClick={() => addNote(activeSession.id)}
-            disabled={activeSession.notes.length >= MAX_NOTES}
+            disabled={activeSession.notes.length >= MAX_FITTING_NOTES}
             className="w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add note
-            {activeSession.notes.length >= MAX_NOTES && (
-              <span className="ml-2 text-xs text-muted-foreground">(max {MAX_NOTES})</span>
+            {activeSession.notes.length >= MAX_FITTING_NOTES && (
+              <span className="ml-2 text-xs text-muted-foreground">(max {MAX_FITTING_NOTES})</span>
             )}
           </Button>
 
           {/* Fitting Photos Upload */}
           <div className="space-y-2">
             <Label>Fitting photos</Label>
+            {activeSession.photoUrls?.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {activeSession.photoUrls.map((url) => (
+                  <img
+                    key={url}
+                    src={url}
+                    alt="Fitting"
+                    className="aspect-square w-full rounded-md object-cover border"
+                  />
+                ))}
+              </div>
+            )}
             <ImageUploader 
               orderId={orderId}
               section="fitting"
               maxFiles={10}
               maxSizeMB={10}
+              onUploadComplete={(urls) => addSessionPhotos(activeSession.id, urls)}
             />
+            <p className="text-xs text-muted-foreground">
+              Photos are optional, but uploaded photos will stay saved with this fitting.
+            </p>
           </div>
         </CardContent>
       </Card>
