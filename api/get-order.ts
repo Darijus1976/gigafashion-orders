@@ -1,22 +1,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json({ error: 'Missing Supabase environment variables' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
     const orderNumber = typeof req.query.orderNumber === 'string' ? req.query.orderNumber : '';
 
     if (!orderNumber) {
@@ -56,13 +55,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .order('sort_order', { ascending: true });
 
     if (fittingError) {
-      return res.status(500).json({
-        error: 'Failed to load fitting sessions',
-        details: fittingError.message,
-      });
+      console.error('Failed to load fitting sessions:', fittingError);
     }
 
-    const fittingSessions = (fittingRows || []).map((session: any, index: number) => ({
+    const fittingSessions = (fittingError ? [] : fittingRows || []).map((session: any, index: number) => ({
       id: session.session_key,
       date: session.fitting_date,
       notes: Array.isArray(session.notes) ? session.notes : [],

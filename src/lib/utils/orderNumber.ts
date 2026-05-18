@@ -21,38 +21,20 @@ export function parseOrderNumber(orderNumber: string): { year: number; sequence:
   }
 }
 
-import { supabase } from '@/lib/supabase/client'
-
 /**
  * Get the next order number from database
  * Queries the highest sequence number for current year and increments by 1
  */
 export async function getNextOrderNumber(): Promise<string> {
-  const currentYear = new Date().getFullYear()
-  
-  // Query the highest order_number for current year
-  const { data, error } = await supabase
-    .from('orders')
-    .select('order_number')
-    .ilike('order_number', `GF-${currentYear}-%`)
-    .order('order_number', { ascending: false })
-    .limit(1)
-  
-  if (error) {
-    console.error('Error fetching order number:', error)
-    throw new Error('Failed to generate order number')
+  const response = await fetch('/api/get-next-order-number')
+  const responseText = await response.text()
+  const result = responseText ? JSON.parse(responseText) : {}
+
+  if (!response.ok) {
+    throw new Error(result.details || result.error || 'Failed to generate order number')
   }
-  
-  let nextSequence = 1
-  
-  if (data && data.length > 0) {
-    const parsed = parseOrderNumber(data[0].order_number)
-    if (parsed && parsed.year === currentYear) {
-      nextSequence = parsed.sequence + 1
-    }
-  }
-  
-  return generateOrderNumber(currentYear, nextSequence)
+
+  return result.orderNumber
 }
 
 /**

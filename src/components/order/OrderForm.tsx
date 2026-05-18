@@ -269,6 +269,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           totalPaid: 0,
           items: activeItems,
           fittingSessions,
+          isExistingOrder: Boolean(initialOrderNumber),
         }),
       })
 

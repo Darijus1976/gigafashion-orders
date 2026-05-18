@@ -21,9 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
     const orderData = req.body;
 
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .upsert({
+    const orderPayload = {
         order_number: orderData.orderNumber,
         client_name: orderData.clientName,
         phone: orderData.phone,
@@ -36,9 +34,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total_amount: orderData.totalAmount || 0,
         total_paid: orderData.totalPaid || 0,
         notes: orderData.notes || null,
-      }, {
-        onConflict: 'order_number',
-      })
+      };
+
+    const orderQuery = orderData.isExistingOrder
+      ? supabase
+        .from('orders')
+        .upsert(orderPayload, {
+          onConflict: 'order_number',
+        })
+      : supabase
+        .from('orders')
+        .insert(orderPayload);
+
+    const { data: order, error: orderError } = await orderQuery
       .select()
       .single();
 
