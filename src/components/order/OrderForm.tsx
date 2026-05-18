@@ -91,8 +91,12 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
-  const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(getInitialAlterationRows)
-  const [fittingSessions, setFittingSessions] = useState<FittingSession[]>(getInitialFittingSessions)
+  const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(
+    initialOrderNumber ? createInitialAlterationRows : getInitialAlterationRows
+  )
+  const [fittingSessions, setFittingSessions] = useState<FittingSession[]>(
+    initialOrderNumber ? createInitialFittingSessions : getInitialFittingSessions
+  )
   const [isSaving, setIsSaving] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
   const [clientInfoData, setClientInfoData] = useState<Partial<ClientInfoFormData>>(() => {
@@ -103,6 +107,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       occasion: undefined,
       occasionCustom: '',
       eventDate: '',
+    }
+
+    if (initialOrderNumber) {
+      return initialData
     }
 
     try {
@@ -123,16 +131,19 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   }, [orderNumber, initialOrderNumber])
 
   useEffect(() => {
+    if (initialOrderNumber) return
     window.localStorage.setItem(CLIENT_INFO_DRAFT_KEY, JSON.stringify(clientInfoData))
-  }, [clientInfoData])
+  }, [clientInfoData, initialOrderNumber])
 
   useEffect(() => {
+    if (initialOrderNumber) return
     window.localStorage.setItem(ALTERATIONS_DRAFT_KEY, JSON.stringify(alterationRows))
-  }, [alterationRows])
+  }, [alterationRows, initialOrderNumber])
 
   useEffect(() => {
+    if (initialOrderNumber) return
     window.localStorage.setItem(FITTING_DRAFT_KEY, JSON.stringify(fittingSessions))
-  }, [fittingSessions])
+  }, [fittingSessions, initialOrderNumber])
 
   useEffect(() => {
     if (!initialOrderNumber) return
