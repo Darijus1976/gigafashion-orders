@@ -3,12 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
@@ -19,10 +20,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const orderData = req.body;
 
-    // Step 1: Supabase Save
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert({
+      .upsert({
         order_number: orderData.orderNumber,
         client_name: orderData.clientName,
         phone: orderData.phone,
@@ -35,15 +35,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total_amount: orderData.totalAmount || 0,
         total_paid: orderData.totalPaid || 0,
         notes: orderData.notes || null,
+      }, {
+        onConflict: 'order_number',
       })
       .select()
       .single();
 
     if (orderError) {
-      console.error('Error creating order:', orderError);
+      console.error('Error saving order:', orderError);
       return res.status(500).json({
-        error: 'Failed to create order',
+        error: 'Failed to save order',
         details: orderError.message,
+      });
+    }
+
+    const { error: deleteItemsError } = await supabase
+      .from('order_items')
+      .delete()
+      .eq('order_id', order.id);
+
+    if (deleteItemsError) {
+      console.error('Error replacing order items:', deleteItemsError);
+      return res.status(500).json({
+        error: 'Failed to replace order items',
+        details: deleteItemsError.message,
       });
     }
 

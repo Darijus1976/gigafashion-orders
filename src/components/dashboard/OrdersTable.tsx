@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, Eye, Download } from 'lucide-react'
+import { Loader2, FolderOpen } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
 
 type Order = Database['public']['Tables']['orders']['Row']
@@ -30,7 +30,7 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
           .lt('created_at', `${dateFilter}T23:59:59`)
       }
 
-      const { data, error } = await query.limit(50)
+      const { data, error } = await query.limit(500)
 
       if (error) throw error
       setOrders(data || [])
@@ -58,10 +58,12 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+      new: { label: 'New', variant: 'secondary' },
       pending: { label: 'Pending', variant: 'secondary' },
       in_progress: { label: 'In Progress', variant: 'default' },
+      fitted: { label: 'Fitted', variant: 'default' },
       completed: { label: 'Completed', variant: 'outline' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' },
+      collected: { label: 'Collected', variant: 'outline' },
     }
     const config = statusMap[status] || { label: status, variant: 'secondary' }
     return <Badge variant={config.variant}>{config.label}</Badge>
@@ -86,10 +88,10 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium">Client file</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Order No.</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Client</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Phone</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
+              <th className="px-4 py-3 text-left text-sm font-medium">Created</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
               <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
             </tr>
@@ -99,18 +101,21 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
               <tr>
                 <td className="px-4 py-8 text-center text-gray-500" colSpan={6}>
                   {searchQuery 
-                    ? 'No orders found for this search' 
-                    : 'Order list is empty'}
+                    ? 'No client files found for this search' 
+                    : 'No client files yet'}
                 </td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-medium">
-                    {order.order_number}
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{order.client_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Event: {order.event_date ? formatDate(order.event_date) : 'Not set'}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-sm">
-                    {order.client_name}
+                  <td className="px-4 py-3 text-sm font-medium text-rose-700">
+                    {order.order_number}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {order.phone}
@@ -123,13 +128,11 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" asChild>
+                      <Button size="sm" asChild>
                         <a href={`/order/${order.order_number}`}>
-                          <Eye className="w-4 h-4" />
+                          <FolderOpen className="w-4 h-4 mr-2" />
+                          Open file
                         </a>
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="w-4 h-4" />
                       </Button>
                     </div>
                   </td>

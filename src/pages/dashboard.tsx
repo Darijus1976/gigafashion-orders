@@ -4,7 +4,7 @@ import { OrdersTable } from '@/components/dashboard/OrdersTable'
 import { SearchBar } from '@/components/dashboard/SearchBar'
 import { DashboardStats } from '@/components/dashboard/DashboardStats'
 import { Button } from '@/components/ui/button'
-import { Plus, RefreshCw } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth()
@@ -28,8 +28,10 @@ export default function DashboardPage() {
     <div className="container mx-auto px-4 py-6">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-rose-700">Order Management</h1>
-          <p className="text-muted-foreground">All customer orders</p>
+          <h1 className="text-2xl font-bold text-rose-700">Client Files</h1>
+          <p className="text-muted-foreground">
+            Search, open and update customer orders from any device
+          </p>
         </div>
         <div className="flex gap-2">
           <Button asChild>

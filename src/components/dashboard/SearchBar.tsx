@@ -21,7 +21,7 @@ export function SearchBar({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input
           type="text"
-          placeholder="Search by name or phone..."
+          placeholder="Search by client name, phone or order number..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10"
