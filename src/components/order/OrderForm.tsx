@@ -99,6 +99,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   )
   const [isSaving, setIsSaving] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [savedOrderId, setSavedOrderId] = useState<string | null>(null)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
   const [clientInfoData, setClientInfoData] = useState<Partial<ClientInfoFormData>>(() => {
     const initialData = {
@@ -179,6 +180,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           throw new Error('Order response did not include order data')
         }
 
+        setSavedOrderId(order.id)
         setClientInfoData({
           clientName: order.client_name,
           phone: order.phone,
@@ -321,6 +323,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           totalPaid: 0,
           items: itemsToSave,
           fittingSessions,
+          orderId: savedOrderId,
           isExistingOrder: Boolean(initialOrderNumber),
         }),
       })
@@ -590,7 +593,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
           <Section5Fitting
             onAddToOrder={handleAddFittingToOrder}
             onRemoveFromOrder={handleRemoveFittingFromOrder}
-            orderId={orderNumber}
+            orderId={savedOrderId || orderNumber}
             sessions={fittingSessions}
             setSessions={setFittingSessions}
           />

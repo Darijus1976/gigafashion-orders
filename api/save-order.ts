@@ -36,15 +36,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         notes: orderData.notes || null,
       };
 
-    const orderQuery = orderData.isExistingOrder
+    const orderQuery = orderData.orderId
       ? supabase
         .from('orders')
-        .upsert(orderPayload, {
-          onConflict: 'order_number',
-        })
-      : supabase
-        .from('orders')
-        .insert(orderPayload);
+        .update(orderPayload)
+        .eq('id', orderData.orderId)
+      : orderData.isExistingOrder
+        ? supabase
+          .from('orders')
+          .update(orderPayload)
+          .eq('order_number', orderData.orderNumber)
+        : supabase
+          .from('orders')
+          .insert(orderPayload);
 
     const { data: order, error: orderError } = await orderQuery
       .select()
