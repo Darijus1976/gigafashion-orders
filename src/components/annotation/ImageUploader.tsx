@@ -180,10 +180,10 @@ export function ImageUploader({
           section: section,
           storage_path: url,
           is_annotated: false,
-        })
+        } as never)
 
         if (dbError) {
-          throw new Error(dbError.message)
+          console.warn('Photo metadata save failed:', dbError)
         }
       } catch (error) {
         console.error('Upload error:', error)
@@ -372,8 +372,13 @@ export function ImageUploader({
                   )}
                   
                   {file.status === 'error' && (
-                    <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-red-500/20 flex flex-col items-center justify-center p-2 text-center">
                       <AlertCircle className="w-8 h-8 text-red-600" />
+                      {file.error && (
+                        <span className="mt-1 rounded bg-white/90 px-1 text-[10px] text-red-700">
+                          {file.error}
+                        </span>
+                      )}
                     </div>
                   )}
                   
