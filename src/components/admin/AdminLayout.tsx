@@ -10,12 +10,12 @@ interface AdminLayoutProps {
 }
 
 const catalogueTabs = [
-  { value: 'wedding', label: 'Wedding', href: '/admin?tab=wedding' },
-  { value: 'debs', label: 'Debs', href: '/admin?tab=debs' },
-  { value: 'christening', label: 'Christening', href: '/admin?tab=christening' },
-  { value: 'communion', label: 'Communion', href: '/admin?tab=communion' },
-  { value: 'confirmation', label: 'Confirmation', href: '/admin?tab=confirmation' },
-  { value: 'extras', label: 'Extras', href: '/admin?tab=extras' },
+  { value: 'wedding', label: 'Wedding', href: '/admin/catalogues?tab=wedding' },
+  { value: 'debs', label: 'Debs', href: '/admin/catalogues?tab=debs' },
+  { value: 'christening', label: 'Christening', href: '/admin/catalogues?tab=christening' },
+  { value: 'communion', label: 'Communion', href: '/admin/catalogues?tab=communion' },
+  { value: 'confirmation', label: 'Confirmation', href: '/admin/catalogues?tab=confirmation' },
+  { value: 'extras', label: 'Extras', href: '/admin/catalogues?tab=extras' },
 ]
 
 export function AdminLayout({ children }: AdminLayoutProps) {
@@ -32,7 +32,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const currentTab = searchParams.get('tab') || 'wedding'
 
   // Determine active section
-  const isCatalogues = location.pathname === '/admin' && !location.pathname.includes('/products')
+  const isCatalogues = location.pathname.includes('/admin/catalogues')
   const isProducts = location.pathname.includes('/admin/products')
   const isSettings = location.pathname.includes('/admin/settings')
 
@@ -53,7 +53,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {/* Main Navigation */}
             <nav className="hidden md:flex items-center gap-1">
               <a
-                href="/admin"
+                href="/admin/catalogues"
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isCatalogues
                     ? 'bg-rose-50 text-rose-700'

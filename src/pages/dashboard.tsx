@@ -4,7 +4,7 @@ import { OrdersTable } from '@/components/dashboard/OrdersTable'
 import { SearchBar } from '@/components/dashboard/SearchBar'
 import { DashboardStats } from '@/components/dashboard/DashboardStats'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth()
@@ -34,8 +34,14 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <a href="/admin">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Main Menu
+            </a>
+          </Button>
           <Button asChild>
-            <a href="/">
+            <a href="/new-order">
               <Plus className="w-4 h-4 mr-2" />
               New Order
             </a>

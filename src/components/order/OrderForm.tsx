@@ -367,6 +367,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
       alert(`Order saved: ${result.orderNumber}`)
+      window.location.href = '/admin'
     } catch (error) {
       setIsSaving(false)
       alert(error instanceof Error ? error.message : 'Failed to save order')

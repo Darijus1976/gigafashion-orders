@@ -7,6 +7,7 @@ const IndexPage = lazy(() => import('./pages/index'))
 const OrderPage = lazy(() => import('./pages/order/[orderNumber]'))
 const DashboardPage = lazy(() => import('./pages/dashboard'))
 const AdminPage = lazy(() => import('./pages/admin/index'))
+const AdminCataloguesPage = lazy(() => import('./pages/admin/catalogues'))
 const AdminProductsPage = lazy(() => import('./pages/admin/products'))
 const LoginPage = lazy(() => import('./pages/login'))
 
@@ -23,9 +24,11 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<IndexPage />} />
+          <Route path="/new-order" element={<IndexPage />} />
           <Route path="/order/:orderNumber" element={<OrderPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+          <Route path="/admin/catalogues" element={<ProtectedRoute><AdminCataloguesPage /></ProtectedRoute>} />
           <Route path="/admin/products" element={<ProtectedRoute><AdminProductsPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>

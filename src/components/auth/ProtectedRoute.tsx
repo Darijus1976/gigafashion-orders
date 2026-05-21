@@ -19,7 +19,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user || user.email !== ADMIN_EMAIL) {
-    window.location.href = '/login'
+    window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
     return null
   }
 

@@ -15,7 +15,8 @@ export default function LoginPage() {
     if (error) {
       setError('Neteisingas el. paštas arba slaptažodis')
     } else {
-      window.location.href = '/admin'
+      const params = new URLSearchParams(window.location.search)
+      window.location.href = params.get('redirect') || '/admin'
     }
   }
 
