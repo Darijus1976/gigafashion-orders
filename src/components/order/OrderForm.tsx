@@ -77,9 +77,10 @@ interface OrderItem {
 
 interface OrderFormProps {
   orderNumber?: string
+  blankOnMount?: boolean
 }
 
-export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
+export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = false }: OrderFormProps) {
   const [isExpanded, setIsExpanded] = useState<Record<number, boolean>>({
     1: true,
     2: false,
@@ -92,10 +93,10 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(
-    initialOrderNumber ? createInitialAlterationRows : getInitialAlterationRows
+    initialOrderNumber || blankOnMount ? createInitialAlterationRows : getInitialAlterationRows
   )
   const [fittingSessions, setFittingSessions] = useState<FittingSession[]>(
-    initialOrderNumber ? createInitialFittingSessions : getInitialFittingSessions
+    initialOrderNumber || blankOnMount ? createInitialFittingSessions : getInitialFittingSessions
   )
   const [isSaving, setIsSaving] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -111,7 +112,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       eventDate: '',
     }
 
-    if (initialOrderNumber) {
+    if (initialOrderNumber || blankOnMount) {
       return initialData
     }
 
@@ -122,6 +123,13 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
       return initialData
     }
   })
+
+  useEffect(() => {
+    if (!blankOnMount || initialOrderNumber) return
+    window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
+    window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
+    window.localStorage.removeItem(FITTING_DRAFT_KEY)
+  }, [blankOnMount, initialOrderNumber])
 
   // Fetch order number on mount if not provided
   useEffect(() => {

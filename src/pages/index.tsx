@@ -1,8 +1,12 @@
+import { useLocation } from 'react-router-dom'
 import { OrderForm } from '@/components/order/OrderForm'
 import { Button } from '@/components/ui/button'
 import { FolderOpen } from 'lucide-react'
 
 export default function IndexPage() {
+  const location = useLocation()
+  const isNewOrderRoute = location.pathname === '/new-order'
+
   return (
     <div className="container mx-auto px-4 py-6">
       <header className="mb-6 flex items-center justify-between gap-4">
@@ -17,7 +21,7 @@ export default function IndexPage() {
           </a>
         </Button>
       </header>
-      <OrderForm />
+      <OrderForm blankOnMount={isNewOrderRoute} />
     </div>
   )
 }
