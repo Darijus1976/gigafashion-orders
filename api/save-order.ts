@@ -83,6 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         description: item.description,
         price: item.price || 0,
         product_id: item.productId || null,
+        image_url: item.imageUrl || null,
         sort_order: index,
       }));
 

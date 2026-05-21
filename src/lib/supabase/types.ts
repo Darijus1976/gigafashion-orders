@@ -31,6 +31,7 @@ export interface Database {
           description: string
           price: number
           product_id: string | null
+          image_url: string | null
           sort_order: number
         }
         Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id'>

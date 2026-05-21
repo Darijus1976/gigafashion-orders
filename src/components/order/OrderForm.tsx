@@ -196,6 +196,7 @@ export function OrderForm({ orderNumber: initialOrderNumber }: OrderFormProps) {
             description: item.description,
             price: Number(item.price) || 0,
             productId: item.product_id || undefined,
+            imageUrl: item.image_url || undefined,
           }))
         setOrderItems(loadedItems)
         const loadedAlterations = loadedItems
