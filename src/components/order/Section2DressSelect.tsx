@@ -144,31 +144,33 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           <Label>Pridėtos suknelės:</Label>
           <div className="space-y-2">
             {dressItems.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3 flex-1">
+              <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-3">
                   {item.imageUrl && (
                     <img 
                       src={item.imageUrl} 
                       alt={item.description}
-                      className="w-16 h-16 object-cover rounded"
+                      className="w-full max-h-96 object-contain rounded-lg bg-white"
                     />
                   )}
                   <div>
                     <p className="text-sm font-medium">{item.description}</p>
                     <p className="text-sm text-rose-600">€{item.price.toFixed(2)}</p>
                   </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (onRemoveItem) {
+                        onRemoveItem(item.id)
+                      }
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (onRemoveItem) {
-                      onRemoveItem(item.id)
-                    }
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
               </div>
             ))}
           </div>
