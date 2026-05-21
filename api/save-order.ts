@@ -5,6 +5,20 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+function generateOrderNumber(year: number, sequence: number): string {
+  return `GF-${year}-${sequence.toString().padStart(4, '0')}`;
+}
+
+function parseOrderNumber(orderNumber: string): { year: number; sequence: number } | null {
+  const match = orderNumber.match(/^GF-(\d{4})-(\d{4})$/);
+  if (!match) return null;
+
+  return {
+    year: parseInt(match[1], 10),
+    sequence: parseInt(match[2], 10),
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -20,9 +34,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
     const orderData = req.body;
+    let orderNumberToSave = orderData.orderNumber;
+
+    if (!orderData.orderId && !orderData.isExistingOrder) {
+      const currentYear = new Date().getFullYear();
+      const { data: latestOrders, error: latestOrderError } = await supabase
+        .from('orders')
+        .select('order_number')
+        .ilike('order_number', `GF-${currentYear}-%`)
+        .order('order_number', { ascending: false })
+        .limit(1);
+
+      if (latestOrderError) {
+        return res.status(500).json({
+          error: 'Failed to validate order number',
+          details: latestOrderError.message,
+        });
+      }
+
+      const latestParsed = latestOrders?.[0]?.order_number
+        ? parseOrderNumber(latestOrders[0].order_number)
+        : null;
+      const requestedParsed = parseOrderNumber(orderNumberToSave);
+      const latestSequence = latestParsed?.year === currentYear ? latestParsed.sequence : 0;
+      const requestedSequence = requestedParsed?.year === currentYear ? requestedParsed.sequence : 0;
+
+      orderNumberToSave = generateOrderNumber(
+        currentYear,
+        Math.max(latestSequence + 1, requestedSequence || 1)
+      );
+    }
 
     const orderPayload = {
-        order_number: orderData.orderNumber,
+        order_number: orderNumberToSave,
         client_name: orderData.clientName,
         phone: orderData.phone,
         visit_date: orderData.visitDate,
@@ -170,7 +214,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       success: true,
-      orderNumber: orderData.orderNumber,
+      orderNumber: orderNumberToSave,
       orderId: order.id,
       message: 'Order saved successfully to Supabase',
     });
