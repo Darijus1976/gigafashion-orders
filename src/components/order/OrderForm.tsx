@@ -4,7 +4,7 @@ import { Section2DressSelect } from './Section2DressSelect'
 import { MIN_ALTERATION_ROWS, Section3Alterations, type AlterationRow } from './Section3Alterations'
 import { Section4Extras } from './Section4Extras'
 import { MIN_FITTING_NOTES, Section5Fitting, type FittingSession } from './Section5Fitting'
-import { Section6OrderList } from './Section6OrderList'
+import { Section6OrderList, type Payment } from './Section6OrderList'
 import { OrderFormFooter } from './OrderFormFooter'
 import { getNextOrderNumber } from '@/lib/utils/orderNumber'
 import { clientInfoSchema } from '@/lib/utils/validation'
@@ -92,6 +92,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
+  const [payments, setPayments] = useState<Payment[]>([])
   const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(
     initialOrderNumber || blankOnMount ? createInitialAlterationRows : getInitialAlterationRows
   )
@@ -166,6 +167,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         let result: {
           order?: any
           items?: any[]
+          payments?: any[]
           fittingSessions?: FittingSession[]
           error?: string
           details?: string
@@ -207,6 +209,13 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             imageUrl: item.image_url || undefined,
           }))
         setOrderItems(loadedItems)
+        setPayments((Array.isArray(result.payments) ? result.payments : []).map((payment: any) => ({
+          id: payment.id,
+          date: payment.payment_date || new Date().toISOString().split('T')[0],
+          amount: String(payment.amount ?? ''),
+          method: payment.method || 'cash',
+          notes: payment.notes || '',
+        })))
         const loadedAlterations = loadedItems
           .filter((item: OrderItem) => item.type === 'alteration')
           .map((item: OrderItem) => ({
@@ -258,6 +267,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     })
     setSelectedOccasion(undefined)
     setOrderItems([])
+    setPayments([])
     setAlterationRows(createInitialAlterationRows())
     setFittingSessions(createInitialFittingSessions())
     setOrderNumber('')
@@ -286,6 +296,15 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       }
 
       const activeItems = orderItems.filter(item => !item.deleted)
+      const paymentsToSave = payments
+        .filter(payment => payment.amount.trim())
+        .map(payment => ({
+          id: payment.id,
+          paymentDate: payment.date,
+          amount: parseFloat(payment.amount) || 0,
+          method: payment.method,
+          notes: payment.notes,
+        }))
       const alterationItemsFromRows: OrderItem[] = alterationRows
         .filter(row => row.description.trim())
         .map(row => ({
@@ -329,8 +348,9 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           dressType: primaryDress?.type === 'custom' ? 'custom' : 'catalogue',
           staffMember: data.staffMember,
           totalAmount,
-          totalPaid: 0,
+          totalPaid: paymentsToSave.reduce((sum, payment) => sum + payment.amount, 0),
           items: itemsToSave,
+          payments: paymentsToSave,
           fittingSessions,
           orderId: savedOrderId,
           isExistingOrder: Boolean(initialOrderNumber),
@@ -358,6 +378,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setIsSaving(false)
       if (initialOrderNumber) {
         alert(`Order saved: ${result.orderNumber}`)
+        window.location.href = '/admin'
         return
       }
 
@@ -371,6 +392,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       })
       setSelectedOccasion(undefined)
       setOrderItems([])
+      setPayments([])
       setAlterationRows(createInitialAlterationRows())
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
@@ -623,6 +645,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           <div className="border-t border-gray-200 p-4">
             <Section6OrderList 
               orderItems={orderItems}
+              payments={payments}
+              setPayments={setPayments}
               onRemoveItem={(id, deletedBy) => {
                 setOrderItems(prev => prev.map(item => 
                   item.id === id 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type Dispatch, type SetStateAction } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,7 +37,7 @@ interface OrderItem {
   deletedBy?: string
 }
 
-interface Payment {
+export interface Payment {
   id: string
   date: string
   amount: string
@@ -47,6 +47,8 @@ interface Payment {
 
 interface Section6OrderListProps {
   orderItems: OrderItem[]
+  payments: Payment[]
+  setPayments: Dispatch<SetStateAction<Payment[]>>
   onRemoveItem?: (id: string, deletedBy: string) => void
 }
 
@@ -64,8 +66,7 @@ const paymentMethodLabels: Record<string, string> = {
   link: 'Link',
 }
 
-export function Section6OrderList({ orderItems, onRemoveItem }: Section6OrderListProps) {
-  const [payments, setPayments] = useState<Payment[]>([])
+export function Section6OrderList({ orderItems, payments, setPayments, onRemoveItem }: Section6OrderListProps) {
   const [staffMember, setStaffMember] = useState<string>('')
 
   // Filter non-deleted items for totals

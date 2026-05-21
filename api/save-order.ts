@@ -144,6 +144,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    const { error: deletePaymentsError } = await supabase
+      .from('payments')
+      .delete()
+      .eq('order_id', order.id);
+
+    if (deletePaymentsError) {
+      console.error('Error replacing payments:', deletePaymentsError);
+      return res.status(500).json({
+        error: 'Failed to replace payments',
+        details: deletePaymentsError.message,
+      });
+    }
+
     // Insert payments
     if (orderData.payments && orderData.payments.length > 0) {
       const paymentsToInsert = orderData.payments.map((payment: any) => ({
