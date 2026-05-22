@@ -61,6 +61,7 @@ export interface Database {
           method: 'cash' | 'card' | 'payment_link'
           payment_date: string
           notes: string | null
+          accepted_by: string | null
         }
         Insert: Omit<Database['public']['Tables']['payments']['Row'], 'id'>
         Update: Partial<Database['public']['Tables']['payments']['Insert']>

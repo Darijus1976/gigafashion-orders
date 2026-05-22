@@ -165,6 +165,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         method: payment.method,
         payment_date: payment.paymentDate || new Date().toISOString().split('T')[0],
         notes: payment.notes || null,
+        accepted_by: payment.acceptedBy || null,
       }));
 
       const { error: paymentsError } = await supabase

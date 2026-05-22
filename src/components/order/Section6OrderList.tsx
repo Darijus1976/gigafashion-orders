@@ -25,6 +25,7 @@ const STAFF_MEMBERS = [
   { value: 'egidija', label: 'Egidija' },
   { value: 'eili', label: 'Eili' },
   { value: 'gintare', label: 'Gintarė' },
+  { value: 'darijus', label: 'Darijus' },
 ] as const
 
 interface OrderItem {
@@ -43,6 +44,7 @@ export interface Payment {
   amount: string
   method: 'cash' | 'card' | 'link'
   notes: string
+  acceptedBy: string
 }
 
 interface Section6OrderListProps {
@@ -93,6 +95,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
         amount: '',
         method: 'cash',
         notes: '',
+        acceptedBy: '',
       },
     ])
   }
@@ -284,7 +287,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   {/* Date */}
-                  <div className="col-span-3 space-y-1">
+                  <div className="col-span-2 space-y-1">
                     <Label className="text-xs">Date</Label>
                     <Input
                       type="date"
@@ -296,7 +299,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   {/* Amount */}
-                  <div className="col-span-3 space-y-1">
+                  <div className="col-span-2 space-y-1">
                     <Label className="text-xs">Amount (€)</Label>
                     <Input
                       type="number"
@@ -311,7 +314,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   {/* Method */}
-                  <div className="col-span-3 space-y-1">
+                  <div className="col-span-2 space-y-1">
                     <Label className="text-xs">Method</Label>
                     <Select
                       value={payment.method}
@@ -330,8 +333,29 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                     </Select>
                   </div>
 
+                  <div className="col-span-2 space-y-1">
+                    <Label className="text-xs">Accepted by *</Label>
+                    <Select
+                      value={payment.acceptedBy}
+                      onValueChange={(value) =>
+                        updatePayment(payment.id, 'acceptedBy', value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STAFF_MEMBERS.map((member) => (
+                          <SelectItem key={member.value} value={member.value}>
+                            {member.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Notes */}
-                  <div className="col-span-5 space-y-1">
+                  <div className="col-span-4 space-y-1">
                     <Label className="text-xs">Payment notes</Label>
                     <Input
                       placeholder="e.g.: Advance, order confirmation..."

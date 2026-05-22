@@ -215,6 +215,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           amount: String(payment.amount ?? ''),
           method: payment.method || 'cash',
           notes: payment.notes || '',
+          acceptedBy: payment.accepted_by || '',
         })))
         const loadedAlterations = loadedItems
           .filter((item: OrderItem) => item.type === 'alteration')
@@ -298,12 +299,14 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       const activeItems = orderItems.filter(item => !item.deleted)
       const paymentsToSave = payments
         .filter(payment => payment.amount.trim())
+        .filter(payment => payment.acceptedBy.trim())
         .map(payment => ({
           id: payment.id,
           paymentDate: payment.date,
           amount: parseFloat(payment.amount) || 0,
           method: payment.method,
           notes: payment.notes,
+          acceptedBy: payment.acceptedBy,
         }))
       const alterationItemsFromRows: OrderItem[] = alterationRows
         .filter(row => row.description.trim())
