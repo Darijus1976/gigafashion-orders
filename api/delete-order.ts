@@ -31,6 +31,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Order not found', details: orderError?.message });
     }
 
+    const { data: photos, error: photosError } = await supabase
+      .from('order_photos')
+      .select('storage_path')
+      .eq('order_id', orderId);
+
+    if (photosError) {
+      console.error('Error fetching photos:', photosError);
+    }
+
+    if (photos && photos.length > 0) {
+      const storagePaths: string[] = [];
+      for (const photo of photos) {
+        const url = photo.storage_path;
+        if (!url) continue;
+        const match = url.match(/\/order-photos\/(.+)$/);
+        if (match) {
+          storagePaths.push(match[1]);
+        }
+      }
+
+      if (storagePaths.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from('order-photos')
+          .remove(storagePaths);
+
+        if (storageError) {
+          console.error('Error deleting photos from storage:', storageError);
+        }
+      }
+    }
+
     const tables = ['order_items', 'payments', 'fitting_sessions', 'order_photos'] as const;
     for (const table of tables) {
       const { error } = await supabase
