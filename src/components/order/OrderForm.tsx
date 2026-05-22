@@ -213,7 +213,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           id: payment.id,
           date: payment.payment_date || new Date().toISOString().split('T')[0],
           amount: String(payment.amount ?? ''),
-          method: payment.method || 'cash',
+          method: payment.method === 'payment_link' ? 'link' : (payment.method || 'cash'),
           notes: payment.notes || '',
           acceptedBy: payment.accepted_by || '',
         })))
@@ -304,7 +304,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           id: payment.id,
           paymentDate: payment.date,
           amount: parseFloat(payment.amount) || 0,
-          method: payment.method,
+          method: payment.method === 'link' ? 'payment_link' : payment.method,
           notes: payment.notes,
           acceptedBy: payment.acceptedBy,
         }))
