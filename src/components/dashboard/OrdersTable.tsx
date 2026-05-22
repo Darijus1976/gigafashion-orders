@@ -2,7 +2,15 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, FolderOpen } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Loader2, FolderOpen, Trash2 } from 'lucide-react'
 import type { Database } from '@/lib/supabase/types'
 
 type Order = Database['public']['Tables']['orders']['Row']
@@ -15,6 +23,8 @@ interface OrdersTableProps {
 export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState<Order | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -71,6 +81,24 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('lt-LT')
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/delete-order?orderId=${encodeURIComponent(deleteTarget.id)}`, {
+        method: 'DELETE',
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.details || result.error || 'Failed to delete')
+      setOrders(prev => prev.filter(o => o.id !== deleteTarget.id))
+      setDeleteTarget(null)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete order')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   if (isLoading) {
@@ -134,6 +162,13 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
                           Open file
                         </a>
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeleteTarget(order)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -142,6 +177,26 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Order</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete this order and all related records?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={isDeleting} onClick={handleDelete}>
+              {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
