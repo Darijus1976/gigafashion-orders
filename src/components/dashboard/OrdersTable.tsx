@@ -66,17 +66,9 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
     )
   })
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      new: { label: 'New', variant: 'secondary' },
-      pending: { label: 'Pending', variant: 'secondary' },
-      in_progress: { label: 'In Progress', variant: 'default' },
-      fitted: { label: 'Fitted', variant: 'default' },
-      completed: { label: 'Completed', variant: 'outline' },
-      collected: { label: 'Collected', variant: 'outline' },
-    }
-    const config = statusMap[status] || { label: status, variant: 'secondary' }
-    return <Badge variant={config.variant}>{config.label}</Badge>
+  const isToday = (dateString: string) => {
+    const today = new Date().toISOString().split('T')[0]
+    return dateString.startsWith(today)
   }
 
   const formatDate = (dateString: string) => {
@@ -152,7 +144,7 @@ export function OrdersTable({ searchQuery = '', dateFilter }: OrdersTableProps) 
                     {formatDate(order.created_at)}
                   </td>
                   <td className="px-4 py-3">
-                    {getStatusBadge(order.status || 'pending')}
+                    {isToday(order.created_at) ? <Badge variant="secondary">New</Badge> : null}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
