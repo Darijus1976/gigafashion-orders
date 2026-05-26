@@ -486,6 +486,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       description: item.description,
       price: item.price,
       productId: item.productId,
+      imageUrl: item.imageUrl,
     }
     setOrderItems(prev => [...prev, orderItem])
     console.log('Added extra to order:', orderItem)
