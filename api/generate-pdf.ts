@@ -1,7 +1,6 @@
 // @ts-nocheck
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { google } from 'googleapis';
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import { Readable } from 'stream';
@@ -27,7 +26,7 @@ function sanitizeFilename(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
-function getDriveAuth() {
+async function getAccessToken(): Promise<string> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
@@ -36,65 +35,90 @@ function getDriveAuth() {
     throw new Error('Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
   }
 
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
       client_id: clientId,
       client_secret: clientSecret,
       refresh_token: refreshToken,
-      type: 'authorized_user',
-    },
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
+      grant_type: 'refresh_token',
+    }),
   });
-  return auth;
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`Token refresh failed: ${JSON.stringify(data)}`);
+  }
+  return data.access_token;
 }
 
-async function findOrCreateFolder(
-  drive: ReturnType<typeof google.drive>,
-  parentId: string,
-  folderName: string
-): Promise<string> {
-  const res = await drive.files.list({
-    q: `name='${folderName.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`,
-    fields: 'files(id, name)',
-    pageSize: 1,
+async function driveRequest(
+  accessToken: string,
+  path: string,
+  options: { method?: string; body?: any } = {}
+): Promise<any> {
+  const res = await fetch(`https://www.googleapis.com/drive/v3${path}`, {
+    method: options.method || 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
   });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`Drive API error (${path}): ${JSON.stringify(data)}`);
+  }
+  return data;
+}
 
-  if (res.data.files && res.data.files.length > 0) {
-    return res.data.files[0].id!;
+async function findOrCreateFolder(accessToken: string, parentId: string, folderName: string): Promise<string> {
+  const q = `name='${folderName.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`;
+  const list = await driveRequest(accessToken, `/files?q=${encodeURIComponent(q)}&fields=files(id,name)&pageSize=1`);
+
+  if (list.files && list.files.length > 0) {
+    return list.files[0].id;
   }
 
-  const createRes = await drive.files.create({
-    requestBody: {
+  const create = await driveRequest(accessToken, '/files', {
+    method: 'POST',
+    body: {
       name: folderName,
       mimeType: 'application/vnd.google-apps.folder',
       parents: [parentId],
     },
-    fields: 'id',
   });
 
-  return createRes.data.id!;
+  return create.id;
 }
 
 async function uploadPdfToDrive(
-  drive: ReturnType<typeof google.drive>,
+  accessToken: string,
   folderId: string,
   filename: string,
   pdfBuffer: Buffer
 ): Promise<string> {
-  const res = await drive.files.create({
-    requestBody: {
-      name: filename,
-      mimeType: 'application/pdf',
-      parents: [folderId],
+  const boundary = '-------' + Date.now();
+  const header = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({ name: filename, mimeType: 'application/pdf', parents: [folderId] })}\r\n--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`;
+  const footer = `\r\n--${boundary}--`;
+
+  const body = Buffer.concat([Buffer.from(header), pdfBuffer, Buffer.from(footer)]);
+
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': `multipart/related; boundary=${boundary}`,
     },
-    media: {
-      mimeType: 'application/pdf',
-      body: Readable.from(pdfBuffer),
-    },
-    fields: 'id, webViewLink',
+    body,
   });
 
-  return res.data.webViewLink || res.data.id!;
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`Drive upload error: ${JSON.stringify(data)}`);
+  }
+  return data.webViewLink || data.id;
 }
 
 async function getOrderData(supabase: ReturnType<typeof createClient>, orderId: string) {
@@ -381,17 +405,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        const auth = getDriveAuth();
-        const drive = google.drive({ version: 'v3', auth });
-        const result = await drive.files.list({
-          q: `'${rootFolderId}' in parents and trashed=false`,
-          fields: 'files(id, name)',
-          pageSize: 5,
-        });
+        const accessToken = await getAccessToken();
+        const list = await driveRequest(accessToken, `/files?q=${encodeURIComponent(`'${rootFolderId}' in parents and trashed=false`)}&fields=files(id,name)&pageSize=5`);
         return res.status(200).json({
           success: true,
           folderId: rootFolderId,
-          files: result.data.files,
+          files: list.files,
         });
       } catch (e: any) {
         return res.status(200).json({
@@ -433,10 +452,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const safeLast = sanitizeFilename(lastName);
     const filePrefix = safeLast ? `${safeFirst}-${safeLast}` : safeFirst;
 
-    const auth = getDriveAuth();
-    const drive = google.drive({ version: 'v3', auth });
+    const accessToken = await getAccessToken();
 
-    const clientFolderId = await findOrCreateFolder(drive, rootFolderId, clientFolderName);
+    const clientFolderId = await findOrCreateFolder(accessToken, rootFolderId, clientFolderName);
 
     let targetFolderId = clientFolderId;
 
@@ -451,19 +469,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (hasPreviousOrders) {
         const now = new Date();
         const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        targetFolderId = await findOrCreateFolder(drive, clientFolderId, yearMonth);
+        targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
       }
     } else {
       const now = new Date();
       const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      targetFolderId = await findOrCreateFolder(drive, clientFolderId, yearMonth);
+      targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
     }
 
     if (pdfType === 'fiting') {
       const html = buildFittingPdfHtml(data);
       const pdfBuffer = await generatePdfBuffer(html);
       const filename = `${filePrefix}_fiting.pdf`;
-      const link = await uploadPdfToDrive(drive, targetFolderId, filename, pdfBuffer);
+      const link = await uploadPdfToDrive(accessToken, targetFolderId, filename, pdfBuffer);
 
       return res.status(200).json({
         success: true,
@@ -481,8 +499,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ]);
 
     const [fullLink, clientLink] = await Promise.all([
-      uploadPdfToDrive(drive, targetFolderId, `${filePrefix}_pilnas.pdf`, fullPdf),
-      uploadPdfToDrive(drive, targetFolderId, `${filePrefix}_klientui.pdf`, clientPdf),
+      uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_pilnas.pdf`, fullPdf),
+      uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_klientui.pdf`, clientPdf),
     ]);
 
     return res.status(200).json({
