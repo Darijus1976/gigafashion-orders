@@ -207,6 +207,9 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             price: Number(item.price) || 0,
             productId: item.product_id || undefined,
             imageUrl: item.image_url || undefined,
+            deleted: item.deleted || false,
+            deletedAt: item.deleted_at || undefined,
+            deletedBy: item.deleted_by || undefined,
           }))
         setOrderItems(loadedItems)
         setPayments((Array.isArray(result.payments) ? result.payments : []).map((payment: any) => ({
@@ -251,8 +254,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     loadExistingOrder()
   }, [initialOrderNumber])
 
-  // Calculate total amount from order items
-  const totalAmount = orderItems.reduce((sum, item) => sum + item.price, 0)
+  // Calculate total amount from active (non-deleted) order items
+  const totalAmount = orderItems.filter(item => !item.deleted).reduce((sum, item) => sum + item.price, 0)
 
   const resetToBlankOrder = async () => {
     window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
@@ -282,6 +285,14 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     }
   }
 
+  const triggerPdfGeneration = (orderId: string) => {
+    fetch('/api/generate-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    }).catch(() => {})
+  }
+
   const handleSaveOrder = async (data: {
     staffMember: string
     orderDate: string
@@ -297,6 +308,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       }
 
       const activeItems = orderItems.filter(item => !item.deleted)
+      const deletedItems = orderItems.filter(item => item.deleted)
       const paymentsToSave = payments
         .filter(payment => payment.amount.trim())
         .filter(payment => payment.acceptedBy.trim())
@@ -333,6 +345,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         ...activeItemsWithoutGeneratedItems,
         ...alterationItemsFromRows,
         ...fittingItemsFromSessions,
+        ...deletedItems,
       ]
       const primaryDress = itemsToSave.find(item => item.type === 'dress' || item.type === 'custom')
       const response = await fetch('/api/save-order', {
@@ -361,7 +374,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       })
 
       const responseText = await response.text()
-      let result: { orderNumber?: string; error?: string; details?: string } = {}
+      let result: { orderNumber?: string; orderId?: string; error?: string; details?: string } = {}
 
       if (responseText) {
         try {
@@ -380,6 +393,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       window.localStorage.removeItem(FITTING_DRAFT_KEY)
       setIsSaving(false)
       if (initialOrderNumber) {
+        if (result.orderId) triggerPdfGeneration(result.orderId)
         alert(`Order saved: ${result.orderNumber}`)
         window.location.href = '/admin'
         return
@@ -399,6 +413,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setAlterationRows(createInitialAlterationRows())
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
+      if (result.orderId) triggerPdfGeneration(result.orderId)
       alert(`Order saved: ${result.orderNumber}`)
       window.location.href = '/admin'
     } catch (error) {

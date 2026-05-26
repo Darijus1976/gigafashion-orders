@@ -1,0 +1,452 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
+import { google } from 'googleapis';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
+import { Readable } from 'stream';
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function splitClientName(fullName: string): { firstName: string; lastName: string } {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 0) return { firstName: 'unknown', lastName: 'client' };
+  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+  const firstName = parts[0];
+  const lastName = parts.slice(1).join(' ');
+  return { firstName, lastName };
+}
+
+function sanitizeFilename(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function getDriveAuth() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error('Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
+  }
+
+  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+  oauth2Client.setCredentials({ refresh_token: refreshToken });
+  return oauth2Client;
+}
+
+async function findOrCreateFolder(
+  drive: ReturnType<typeof google.drive>,
+  parentId: string,
+  folderName: string
+): Promise<string> {
+  const res = await drive.files.list({
+    q: `name='${folderName.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`,
+    fields: 'files(id, name)',
+    pageSize: 1,
+  });
+
+  if (res.data.files && res.data.files.length > 0) {
+    return res.data.files[0].id!;
+  }
+
+  const createRes = await drive.files.create({
+    requestBody: {
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentId],
+    },
+    fields: 'id',
+  });
+
+  return createRes.data.id!;
+}
+
+async function uploadPdfToDrive(
+  drive: ReturnType<typeof google.drive>,
+  folderId: string,
+  filename: string,
+  pdfBuffer: Buffer
+): Promise<string> {
+  const res = await drive.files.create({
+    requestBody: {
+      name: filename,
+      mimeType: 'application/pdf',
+      parents: [folderId],
+    },
+    media: {
+      mimeType: 'application/pdf',
+      body: Readable.from(pdfBuffer),
+    },
+    fields: 'id, webViewLink',
+  });
+
+  return res.data.webViewLink || res.data.id!;
+}
+
+async function getOrderData(supabase: ReturnType<typeof createClient>, orderId: string) {
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', orderId)
+    .single();
+
+  if (orderError || !order) throw new Error(`Order not found: ${orderError?.message}`);
+
+  const { data: items } = await supabase
+    .from('order_items')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('sort_order', { ascending: true });
+
+  const { data: payments } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('payment_date', { ascending: true });
+
+  const { data: fittingRows } = await supabase
+    .from('fitting_sessions')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('sort_order', { ascending: true });
+
+  const fittingSessions = (fittingRows || []).map((s: any) => ({
+    date: s.fitting_date,
+    notes: Array.isArray(s.notes) ? s.notes : [],
+    photoUrls: Array.isArray(s.photo_urls) ? s.photo_urls : [],
+  }));
+
+  return { order, items: items || [], payments: payments || [], fittingSessions };
+}
+
+function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): string {
+  const { order, items, payments, fittingSessions } = data;
+  const occasionLabels: Record<string, string> = {
+    christening: 'Christening',
+    communion: 'Communion',
+    confirmation: 'Confirmation',
+    debs: 'Debs',
+    wedding: 'Wedding',
+    wedding_alteration: 'Wedding Alteration',
+    other: 'Other',
+  };
+
+  const activeItems = items.filter((i: any) => !i.deleted);
+  const totalAmount = activeItems.reduce((sum: number, i: any) => sum + Number(i.price || 0), 0);
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }
+  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
+  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }
+  th { background: #f5f5f5; font-weight: 600; }
+  .field { margin-bottom: 6px; }
+  .field-label { font-weight: 600; display: inline-block; width: 160px; }
+  .total-row td { font-weight: 700; border-top: 2px solid #333; }
+  .note { font-style: italic; color: #555; }
+  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+</style></head><body>
+<h1>Order #${order.order_number} — Full Archive</h1>
+
+<h2>Client Information</h2>
+<div class="field"><span class="field-label">Client Name:</span> ${order.client_name}</div>
+<div class="field"><span class="field-label">Phone:</span> ${order.phone}</div>
+<div class="field"><span class="field-label">Visit Date:</span> ${order.visit_date ? new Date(order.visit_date).toLocaleDateString('lt-LT') : ''}</div>
+<div class="field"><span class="field-label">Occasion:</span> ${occasionLabels[order.occasion] || order.occasion}${order.occasion_custom ? ` (${order.occasion_custom})` : ''}</div>
+<div class="field"><span class="field-label">Event Date:</span> ${order.event_date || ''}</div>
+<div class="field"><span class="field-label">Dress Type:</span> ${order.dress_type === 'custom' ? 'Custom' : 'Catalogue'}</div>
+<div class="field"><span class="field-label">Status:</span> ${order.status}</div>
+<div class="field"><span class="field-label">Staff Member:</span> ${order.staff_member}</div>
+${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <span class="note">${order.notes}</span></div>` : ''}
+
+<h2>Order Items</h2>
+<table>
+<tr><th>#</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
+${activeItems.map((item: any, i: number) => `
+<tr>
+  <td>${i + 1}</td>
+  <td>${item.item_type}</td>
+  <td>${item.description}</td>
+  <td>€${Number(item.price || 0).toFixed(2)}</td>
+</tr>`).join('')}
+<tr class="total-row"><td colspan="3">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
+</table>
+
+<h2>Payments</h2>
+${payments.length > 0 ? `
+<table>
+<tr><th>Date</th><th>Method</th><th>Amount (€)</th><th>Accepted By</th><th>Notes</th></tr>
+${payments.map((p: any) => `
+<tr>
+  <td>${p.payment_date}</td>
+  <td>${p.method}</td>
+  <td>€${Number(p.amount || 0).toFixed(2)}</td>
+  <td>${p.accepted_by || ''}</td>
+  <td>${p.notes || ''}</td>
+</tr>`).join('')}
+</table>
+` : '<p>No payments recorded.</p>'}
+
+<div class="field"><span class="field-label">Total Amount:</span> €${Number(order.total_amount || 0).toFixed(2)}</div>
+<div class="field"><span class="field-label">Total Paid:</span> €${Number(order.total_paid || 0).toFixed(2)}</div>
+<div class="field"><span class="field-label">Balance Due:</span> €${(Number(order.total_amount || 0) - Number(order.total_paid || 0)).toFixed(2)}</div>
+
+${fittingSessions.length > 0 ? `
+<h2>Fitting Sessions</h2>
+${fittingSessions.map((s: any, si: number) => `
+<h3>Session ${si + 1} — ${s.date}</h3>
+${s.notes && s.notes.length > 0 ? `
+<table>
+<tr><th>#</th><th>Description</th><th>Price (€)</th></tr>
+${s.notes.map((n: any, ni: number) => `
+<tr>
+  <td>${ni + 1}</td>
+  <td>${n.description || ''}</td>
+  <td>€${Number(n.price || 0).toFixed(2)}</td>
+</tr>`).join('')}
+</table>
+` : '<p>No notes.</p>'}
+${s.photoUrls && s.photoUrls.length > 0 ? `<p>Photos: ${s.photoUrls.length} attached</p>` : ''}
+`).join('')}
+` : ''}
+
+<div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Internal Archive</div>
+</body></html>`;
+}
+
+function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): string {
+  const { order, items, fittingSessions } = data;
+  const occasionLabels: Record<string, string> = {
+    christening: 'Christening',
+    communion: 'Communion',
+    confirmation: 'Confirmation',
+    debs: 'Debs',
+    wedding: 'Wedding',
+    wedding_alteration: 'Wedding Alteration',
+    other: 'Other',
+  };
+
+  const activeItems = items.filter((i: any) => !i.deleted);
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }
+  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
+  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }
+  th { background: #f5f5f5; font-weight: 600; }
+  .field { margin-bottom: 6px; }
+  .field-label { font-weight: 600; display: inline-block; width: 160px; }
+  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+</style></head><body>
+<h1>Order #${order.order_number} — Client Copy</h1>
+
+<h2>Client Information</h2>
+<div class="field"><span class="field-label">Client Name:</span> ${order.client_name}</div>
+<div class="field"><span class="field-label">Phone:</span> ${order.phone}</div>
+<div class="field"><span class="field-label">Visit Date:</span> ${order.visit_date ? new Date(order.visit_date).toLocaleDateString('lt-LT') : ''}</div>
+<div class="field"><span class="field-label">Occasion:</span> ${occasionLabels[order.occasion] || order.occasion}${order.occasion_custom ? ` (${order.occasion_custom})` : ''}</div>
+<div class="field"><span class="field-label">Event Date:</span> ${order.event_date || ''}</div>
+<div class="field"><span class="field-label">Dress Type:</span> ${order.dress_type === 'custom' ? 'Custom' : 'Catalogue'}</div>
+<div class="field"><span class="field-label">Status:</span> ${order.status}</div>
+<div class="field"><span class="field-label">Staff Member:</span> ${order.staff_member}</div>
+${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${order.notes}</div>` : ''}
+
+<h2>Order Items</h2>
+<table>
+<tr><th>#</th><th>Type</th><th>Description</th></tr>
+${activeItems.map((item: any, i: number) => `
+<tr>
+  <td>${i + 1}</td>
+  <td>${item.item_type}</td>
+  <td>${item.description}</td>
+</tr>`).join('')}
+</table>
+
+${fittingSessions.length > 0 ? `
+<h2>Fitting Sessions</h2>
+${fittingSessions.map((s: any, si: number) => `
+<h3>Session ${si + 1} — ${s.date}</h3>
+${s.notes && s.notes.length > 0 ? `
+<table>
+<tr><th>#</th><th>Description</th></tr>
+${s.notes.map((n: any, ni: number) => `
+<tr>
+  <td>${ni + 1}</td>
+  <td>${n.description || ''}</td>
+</tr>`).join('')}
+</table>
+` : '<p>No notes.</p>'}
+`).join('')}
+` : ''}
+
+<div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion</div>
+</body></html>`;
+}
+
+function buildFittingPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): string {
+  const { order, fittingSessions } = data;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }
+  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
+  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }
+  th { background: #f5f5f5; font-weight: 600; }
+  .field { margin-bottom: 6px; }
+  .field-label { font-weight: 600; display: inline-block; width: 160px; }
+  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+</style></head><body>
+<h1>Fitting Sheet — ${order.client_name}</h1>
+<div class="field"><span class="field-label">Order Number:</span> ${order.order_number}</div>
+<div class="field"><span class="field-label">Phone:</span> ${order.phone}</div>
+
+${fittingSessions.length > 0 ? fittingSessions.map((s: any, si: number) => `
+<h2>Fitting Session ${si + 1} — ${s.date}</h2>
+${s.notes && s.notes.length > 0 ? `
+<table>
+<tr><th>#</th><th>Measurement / Alteration Note</th></tr>
+${s.notes.map((n: any, ni: number) => `
+<tr>
+  <td>${ni + 1}</td>
+  <td>${n.description || ''}</td>
+</tr>`).join('')}
+</table>
+` : '<p>No measurement notes recorded.</p>'}
+${s.photoUrls && s.photoUrls.length > 0 ? `<p>Photos: ${s.photoUrls.length} attached</p>` : ''}
+`).join('') : '<p>No fitting sessions recorded.</p>'}
+
+<div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Fitting Sheet</div>
+</body></html>`;
+}
+
+async function generatePdfBuffer(html: string): Promise<Buffer> {
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
+      printBackground: true,
+    });
+    const buf = Buffer.from(pdfBuffer);
+    return buf;
+  } finally {
+    await browser.close();
+  }
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      return res.status(500).json({ error: 'Missing Supabase environment variables' });
+    }
+
+    const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+    if (!rootFolderId) {
+      return res.status(500).json({ error: 'Missing GOOGLE_DRIVE_ROOT_FOLDER_ID' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const pdfType = typeof req.query.type === 'string' ? req.query.type : 'full';
+    const orderId = req.body?.orderId;
+
+    if (!orderId) {
+      return res.status(400).json({ error: 'Missing orderId in request body' });
+    }
+
+    const data = await getOrderData(supabase, orderId);
+    const { firstName, lastName } = splitClientName(data.order.client_name);
+    const clientFolderName = `${firstName} ${lastName}`.trim();
+    const safeFirst = sanitizeFilename(firstName);
+    const safeLast = sanitizeFilename(lastName);
+    const filePrefix = safeLast ? `${safeFirst}-${safeLast}` : safeFirst;
+
+    const auth = getDriveAuth();
+    const drive = google.drive({ version: 'v3', auth });
+
+    const clientFolderId = await findOrCreateFolder(drive, rootFolderId, clientFolderName);
+
+    let targetFolderId = clientFolderId;
+
+    if (pdfType !== 'fiting') {
+      const { count } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('client_name', data.order.client_name);
+
+      const hasPreviousOrders = (count || 0) > 1;
+
+      if (hasPreviousOrders) {
+        const now = new Date();
+        const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        targetFolderId = await findOrCreateFolder(drive, clientFolderId, yearMonth);
+      }
+    } else {
+      const now = new Date();
+      const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      targetFolderId = await findOrCreateFolder(drive, clientFolderId, yearMonth);
+    }
+
+    if (pdfType === 'fiting') {
+      const html = buildFittingPdfHtml(data);
+      const pdfBuffer = await generatePdfBuffer(html);
+      const filename = `${filePrefix}_fiting.pdf`;
+      const link = await uploadPdfToDrive(drive, targetFolderId, filename, pdfBuffer);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Fitting sheet PDF uploaded to Google Drive',
+        driveLink: link,
+      });
+    }
+
+    const fullHtml = buildFullPdfHtml(data);
+    const clientHtml = buildClientPdfHtml(data);
+
+    const [fullPdf, clientPdf] = await Promise.all([
+      generatePdfBuffer(fullHtml),
+      generatePdfBuffer(clientHtml),
+    ]);
+
+    const [fullLink, clientLink] = await Promise.all([
+      uploadPdfToDrive(drive, targetFolderId, `${filePrefix}_pilnas.pdf`, fullPdf),
+      uploadPdfToDrive(drive, targetFolderId, `${filePrefix}_klientui.pdf`, clientPdf),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: 'PDFs generated and uploaded to Google Drive',
+      fullArchiveLink: fullLink,
+      clientCopyLink: clientLink,
+    });
+  } catch (error) {
+    console.error('generate-pdf error:', error);
+    return res.status(500).json({
+      error: 'Failed to generate PDFs',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}

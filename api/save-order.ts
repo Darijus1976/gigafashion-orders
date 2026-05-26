@@ -129,6 +129,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         product_id: item.productId || null,
         image_url: item.imageUrl || null,
         sort_order: index,
+        deleted: item.deleted || false,
+        deleted_at: item.deletedAt || null,
+        deleted_by: item.deletedBy || null,
       }));
 
       const { error: itemsError } = await supabase
@@ -219,12 +222,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // TODO: Implement remaining steps:
-    // 2. PDF Generation — Full (Staff)
-    // 3. Google Drive — Staff PDF
-    // 4. PDF Generation — Client
-    // 5. Google Drive — Client PDF
-    // 6. Google Sheets Update
+    // PDF generation is triggered asynchronously by the frontend
+    // via POST /api/generate-pdf with { orderId } after this response.
 
     return res.status(200).json({
       success: true,
