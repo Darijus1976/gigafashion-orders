@@ -36,7 +36,11 @@ function getDriveAuth() {
     throw new Error('Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
   }
 
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    'https://developers.google.com/oauthplayground'
+  );
   oauth2Client.setCredentials({ refresh_token: refreshToken });
   return oauth2Client;
 }
