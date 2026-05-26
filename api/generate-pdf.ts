@@ -203,15 +203,16 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <spa
 
 <h2>Order Items</h2>
 <table>
-<tr><th>#</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
+<tr><th>#</th><th>Image</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
 ${activeItems.map((item: any, i: number) => `
 <tr>
   <td>${i + 1}</td>
+  <td>${item.image_url ? `<img src="${item.image_url}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;" />` : ''}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
   <td>€${Number(item.price || 0).toFixed(2)}</td>
 </tr>`).join('')}
-<tr class="total-row"><td colspan="3">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
+<tr class="total-row"><td colspan="4">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
 </table>
 
 <h2>Payments</h2>
@@ -302,10 +303,11 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${or
 
 <h2>Order Items</h2>
 <table>
-<tr><th>#</th><th>Type</th><th>Description</th></tr>
+<tr><th>#</th><th>Image</th><th>Type</th><th>Description</th></tr>
 ${activeItems.map((item: any, i: number) => `
 <tr>
   <td>${i + 1}</td>
+  <td>${item.image_url ? '<img src="' + item.image_url + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;" />' : ''}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
 </tr>`).join('')}
