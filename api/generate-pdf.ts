@@ -184,6 +184,8 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
   .field-label { font-weight: 600; display: inline-block; width: 160px; }
   .total-row td { font-weight: 700; border-top: 2px solid #333; }
   .note { font-style: italic; color: #555; }
+  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }
   .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
 </style></head><body>
 <h1>Order #${order.order_number} — Full Archive</h1>
@@ -246,7 +248,10 @@ ${s.notes.map((n: any, ni: number) => `
 </tr>`).join('')}
 </table>
 ` : '<p>No notes.</p>'}
-${s.photoUrls && s.photoUrls.length > 0 ? `<p>Photos: ${s.photoUrls.length} attached</p>` : ''}
+${s.photoUrls && s.photoUrls.length > 0 ? `
+<div class="photos">
+${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
+</div>` : ''}
 `).join('')}
 ` : ''}
 
@@ -278,6 +283,8 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
   th { background: #f5f5f5; font-weight: 600; }
   .field { margin-bottom: 6px; }
   .field-label { font-weight: 600; display: inline-block; width: 160px; }
+  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }
   .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
 </style></head><body>
 <h1>Order #${order.order_number} — Client Copy</h1>
@@ -318,6 +325,10 @@ ${s.notes.map((n: any, ni: number) => `
 </tr>`).join('')}
 </table>
 ` : '<p>No notes.</p>'}
+${s.photoUrls && s.photoUrls.length > 0 ? `
+<div class="photos">
+${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
+</div>` : ''}
 `).join('')}
 ` : ''}
 
@@ -338,6 +349,8 @@ function buildFittingPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): st
   th { background: #f5f5f5; font-weight: 600; }
   .field { margin-bottom: 6px; }
   .field-label { font-weight: 600; display: inline-block; width: 160px; }
+  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }
   .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
 </style></head><body>
 <h1>Fitting Sheet — ${order.client_name}</h1>
@@ -356,7 +369,10 @@ ${s.notes.map((n: any, ni: number) => `
 </tr>`).join('')}
 </table>
 ` : '<p>No measurement notes recorded.</p>'}
-${s.photoUrls && s.photoUrls.length > 0 ? `<p>Photos: ${s.photoUrls.length} attached</p>` : ''}
+${s.photoUrls && s.photoUrls.length > 0 ? `
+<div class="photos">
+${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
+</div>` : ''}
 `).join('') : '<p>No fitting sessions recorded.</p>'}
 
 <div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Fitting Sheet</div>
