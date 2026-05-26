@@ -286,11 +286,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   }
 
   const triggerPdfGeneration = (orderId: string) => {
-    fetch('/api/generate-pdf', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId }),
-    }).catch(() => {})
+    const blob = new Blob([JSON.stringify({ orderId })], { type: 'application/json' });
+    navigator.sendBeacon('/api/generate-pdf', blob);
   }
 
   const handleSaveOrder = async (data: {
