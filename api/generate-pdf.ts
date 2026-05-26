@@ -363,12 +363,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
     if (req.query.test === 'auth') {
       try {
+        const clientId = process.env.GOOGLE_CLIENT_ID || '';
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+        const refreshToken = process.env.GOOGLE_REFRESH_TOKEN || '';
+        const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || '';
+
+        if (!clientId || !clientSecret || !refreshToken || !rootFolderId) {
+          return res.status(200).json({
+            error: 'Missing env vars',
+            hasClientId: !!clientId,
+            hasClientSecret: !!clientSecret,
+            hasRefreshToken: !!refreshToken,
+            hasRootFolderId: !!rootFolderId,
+          });
+        }
+
         const auth = getDriveAuth();
         const drive = google.drive({ version: 'v3', auth });
-        const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
-        if (!rootFolderId) {
-          return res.status(200).json({ error: 'Missing GOOGLE_DRIVE_ROOT_FOLDER_ID' });
-        }
         const result = await drive.files.list({
           q: `'${rootFolderId}' in parents and trashed=false`,
           fields: 'files(id, name)',
