@@ -357,6 +357,32 @@ async function generatePdfBuffer(html: string): Promise<Buffer> {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
+    if (req.query.test === 'auth') {
+      try {
+        const auth = getDriveAuth();
+        const drive = google.drive({ version: 'v3', auth });
+        const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+        if (!rootFolderId) {
+          return res.status(200).json({ error: 'Missing GOOGLE_DRIVE_ROOT_FOLDER_ID' });
+        }
+        const result = await drive.files.list({
+          q: `'${rootFolderId}' in parents and trashed=false`,
+          fields: 'files(id, name)',
+          pageSize: 5,
+        });
+        return res.status(200).json({
+          success: true,
+          folderId: rootFolderId,
+          files: result.data.files,
+        });
+      } catch (e: any) {
+        return res.status(200).json({
+          error: 'Auth failed',
+          message: e.message,
+          stack: e.stack,
+        });
+      }
+    }
     return res.status(200).json({ status: 'ok', message: 'generate-pdf function is alive' });
   }
 
