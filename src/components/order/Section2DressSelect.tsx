@@ -135,6 +135,32 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
     }
   }
 
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('No canvas context')); return }
+        let { width, height } = img
+        const maxDim = 1920
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = (height / width) * maxDim; width = maxDim }
+          else { width = (width / height) * maxDim; height = maxDim }
+        }
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(blob => {
+          if (blob) resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' }))
+          else reject(new Error('Compression failed'))
+        }, 'image/webp', 0.8)
+      }
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   const addImages = async (files: FileList | null) => {
     if (!files) return
     setUploadingImages(true)
@@ -142,10 +168,11 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
     for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) continue
       try {
+        const compressed = await compressImage(file)
         const filePath = 'custom-dress/' + tempId + '/' + Date.now() + '.webp'
         const { error: uploadError } = await supabase.storage
           .from('order-photos')
-          .upload(filePath, file, { cacheControl: '3600', upsert: false })
+          .upload(filePath, compressed, { cacheControl: '3600', upsert: false })
         if (uploadError) throw uploadError
         const { data } = supabase.storage.from('order-photos').getPublicUrl(filePath)
         setCustomImagePreviews(prev => [...prev, data.publicUrl])
