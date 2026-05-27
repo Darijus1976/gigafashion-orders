@@ -507,7 +507,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   }
 
   return (
-    <div className="space-y-4 pb-48 sm:pb-32">
+    <div className="space-y-4 pb-32">
       {loadError && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           Failed to load saved order: {loadError}
