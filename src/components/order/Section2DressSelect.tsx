@@ -8,8 +8,8 @@ import { ShoppingBag, PenTool, Plus, ImageIcon, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/types'
 
-type Product = Database['tblic']['Tables']['products']['Row')
-type Occasion = Database['tblic']['Tables']['orders']['Row']['occasion']
+type Product = Database['public']['Tables']['products']['Row']
+type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 
 type DressSelectionMode = 'catalogue' | 'custom'
 
