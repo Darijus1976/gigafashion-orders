@@ -427,7 +427,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     console.log('Client info submitted:', data)
     setClientInfoData(data)
     setSelectedOccasion(data.occasion)
-    // TODO: Save to Zustand store
+    setIsExpanded(prev => ({ ...prev, [2]: true }))
+    setTimeout(() => {
+      document.getElementById('section-2')?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
   }
 
   const handleClientInfoChange = (data: Partial<ClientInfoFormData>) => {
@@ -568,7 +571,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 2 - Dress Selection */}
-      <div className="rounded-lg border border-gray-200">
+      <div id="section-2" className="rounded-lg border border-gray-200">
         <button
           onClick={() => toggleSection(2)}
           className="flex w-full items-center justify-between p-4 text-left font-medium"
