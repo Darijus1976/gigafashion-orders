@@ -26,6 +26,14 @@ function sanitizeFilename(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
+function getImageUrls(imageUrl: string | null): string[] {
+  if (!imageUrl) return [];
+  if (imageUrl.startsWith('[')) {
+    try { return JSON.parse(imageUrl); } catch { return [imageUrl]; }
+  }
+  return [imageUrl];
+}
+
 async function getAccessToken(): Promise<string> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -207,7 +215,7 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <spa
 ${activeItems.map((item: any, i: number) => `
 <tr>
   <td>${i + 1}</td>
-  <td>${item.image_url ? `<img src="${item.image_url}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;" />` : ''}</td>
+  <td>${item.image_url ? getImageUrls(item.image_url).map(u => '<img src="' + u + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;" />').join('') : ''}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
   <td>€${Number(item.price || 0).toFixed(2)}</td>
@@ -307,7 +315,7 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${or
 ${activeItems.map((item: any, i: number) => `
 <tr>
   <td>${i + 1}</td>
-  <td>${item.image_url ? '<img src="' + item.image_url + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;" />' : ''}</td>
+  <td>${item.image_url ? getImageUrls(item.image_url).map(u => '<img src="' + u + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;" />').join('') : ''}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
 </tr>`).join('')}

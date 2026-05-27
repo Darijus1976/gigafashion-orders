@@ -8,8 +8,8 @@ import { ShoppingBag, PenTool, Plus, ImageIcon, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/types'
 
-type Product = Database['public']['Tables']['products']['Row']
-type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
+type Product = Database['tblic']['Tables']['products']['Row')
+type Occasion = Database['tblic']['Tables']['orders']['Row']['occasion']
 
 type DressSelectionMode = 'catalogue' | 'custom'
 
@@ -20,6 +20,7 @@ interface DressSelectionItem {
   price: number
   productId?: string
   imageUrl?: string
+  imageUrls?: string[]
 }
 
 interface OrderItem {
@@ -42,12 +43,12 @@ interface Section2DressSelectProps {
 }
 
 const occasionLabels: Record<Occasion, string> = {
-  christening: 'Krikštynos',
+  christening: 'Krikstynos',
   communion: 'Komunija',
   confirmation: 'Sutvirtinimas',
   debs: 'Debs',
-  wedding: 'Vestuvės',
-  wedding_alteration: 'Vestuvių taisymas',
+  wedding: 'Vestuves',
+  wedding_alteration: 'Vestuviu taisymas',
   other: 'Kita',
 }
 
@@ -58,10 +59,9 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
-  const [customImageFile, setCustomImageFile] = useState<File | null>(null)
-  const [customImagePreview, setCustomImagePreview] = useState<string | null>(null)
+  const [customImageFiles, setCustomImageFiles] = useState<File[]>([])
+  const [customImagePreviews, setCustomImagePreviews] = useState<string[]>([])
 
-  // Filter dress items from orderItems (both catalogue and custom)
   const dressItems = orderItems.filter(item => item.type === 'dress' || item.type === 'custom')
 
   useEffect(() => {
@@ -124,50 +124,55 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
         type: 'custom',
         description: customDescription,
         price: price,
-        imageUrl: customImagePreview || undefined,
+        imageUrls: customImagePreviews.length > 0 ? customImagePreviews : undefined,
       }
       onAddToOrder(item)
       setCustomDescription('')
       setCustomPrice('')
-      setCustomImageFile(null)
-      setCustomImagePreview(null)
+      setCustomImageFiles([])
+      setCustomImagePreviews([])
     }
+  }
+
+  const addImages = (files: FileList | null) => {
+    if (!files) return
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return
+      setCustomImageFiles(prev => [...prev, file])
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setCustomImagePreviews(prev => [...prev, reader.result as string])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeImage = (idx: number) => {
+    setCustomImageFiles(prev => prev.filter((_, i) => i !== idx))
+    setCustomImagePreviews(prev => prev.filter((_, i) => i !== idx))
   }
 
   const hasSelectedMode = selectedMode !== null
 
   return (
     <div className="space-y-4">
-      {/* Added dresses list - always visible */}
       {dressItems.length > 0 && (
         <div className="space-y-2">
-          <Label>Pridėtos suknelės:</Label>
+          <Label>Pridetos sukneles:</Label>
           <div className="space-y-2">
             {dressItems.map((item) => (
               <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-3">
                   {item.imageUrl && (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.description}
-                      className="w-full max-h-96 object-contain rounded-lg bg-white"
-                    />
+                    <img src={item.imageUrl} alt={item.description} className="w-full max-h-96 object-contain rounded-lg bg-white" />
                   )}
                   <div>
                     <p className="text-sm font-medium">{item.description}</p>
                     <p className="text-sm text-rose-600">€{item.price.toFixed(2)}</p>
                   </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (onRemoveItem) {
-                        onRemoveItem(item.id)
-                      }
-                    }}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => { if (onRemoveItem) onRemoveItem(item.id)}}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
@@ -177,13 +182,9 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
         </div>
       )}
 
-      {/* Mode Selection Cards */}
       {!hasSelectedMode && (
         <div className="grid grid-cols-2 gap-4">
-          <Card 
-            className="cursor-pointer hover:border-rose-400 transition-colors"
-            onClick={() => setSelectedMode('catalogue')}
-          >
+          <Card className="cursor-pointer hover:border-rose-400 transition-colors" onClick={() => setSelectedMode('catalogue')}>
             <CardHeader className="text-center">
               <ShoppingBag className="w-12 h-12 mx-auto text-rose-600 mb-2" />
               <CardTitle className="text-lg">Our Catalogue Dress</CardTitle>
@@ -195,10 +196,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             </CardContent>
           </Card>
 
-          <Card 
-            className="cursor-pointer hover:border-gold-400 transition-colors"
-            onClick={() => setSelectedMode('custom')}
-          >
+          <Card className="cursor-pointer hover:border-gold-400 transition-colors" onClick={() => setSelectedMode('custom')}>
             <CardHeader className="text-center">
               <PenTool className="w-12 h-12 mx-auto text-gold-500 mb-2" />
               <CardTitle className="text-lg">Custom Dress</CardTitle>
@@ -212,7 +210,6 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
         </div>
       )}
 
-      {/* Change Mode Button */}
       {hasSelectedMode && (
         <Button
           variant="outline"
@@ -222,13 +219,14 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             setSelectedProduct(null)
             setCustomDescription('')
             setCustomPrice('')
+            setCustomImageFiles([])
+            setCustomImagePreviews([])
           }}
         >
-          ← Keisti pasirinkimą
+          ← Change selection
         </Button>
       )}
 
-      {/* Mode A: Catalogue Selection */}
       {selectedMode === 'catalogue' && (
         <div className="space-y-4">
           <h3 className="font-medium">
@@ -236,29 +234,21 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           </h3>
           
           {isLoadingProducts ? (
-            <p className="text-muted-foreground">Kraunamos suknelės...</p>
+            <p className="text-muted-foreground">Kraunamos sukneles...</p>
           ) : filteredProducts.length === 0 ? (
-            <p className="text-muted-foreground">Šioje kategorijoje nėra suknelių</p>
+            <p className="text-muted-foreground">Šioje kategorijoje nėra sukneliu</p>
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {filteredProducts.map((product) => (
                 <Card 
                   key={product.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedProduct?.id === product.id 
-                      ? 'border-rose-600 ring-2 ring-rose-200' 
-                      : 'hover:border-rose-300'
-                  }`}
+                  className={`cursor-pointer transition-all ${selectedProduct?.id === product.id ? 'border-rose-600 ring-2 ring-rose-200' : 'hover:border-rose-300'}`}
                   onClick={() => handleCatalogueSelect(product)}
                 >
                   <CardContent className="p-4">
                     <div className="aspect-square bg-gray-100 rounded-md mb-3 flex items-center justify-center">
                       {product.image_url ? (
-                        <img 
-                          src={product.image_url} 
-                          alt={product.name}
-                          className="w-full h-full object-cover rounded-md"
-                        />
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-md" />
                       ) : (
                         <ImageIcon className="w-12 h-12 text-gray-400" />
                       )}
@@ -283,7 +273,6 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
         </div>
       )}
 
-      {/* Mode B: Custom Dress */}
       {selectedMode === 'custom' && (
         <div className="space-y-4">
           <h3 className="font-medium">Custom Dress</h3>
@@ -316,50 +305,37 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             />
           </div>
 
-          {/* Image upload */}
           <div className="space-y-2">
-            <Label>Referencinės nuotraukos</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              {customImagePreview ? (
-                <div className="space-y-2">
-                  <img 
-                    src={customImagePreview} 
-                    alt="Preview" 
-                    className="max-h-40 mx-auto rounded-lg"
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      setCustomImageFile(null)
-                      setCustomImagePreview(null)
-                    }}
-                  >
-                    <X className="w-4 h-4 mr-1" /> Remove
-                  </Button>
+            <Label>Referencines nuotraukos</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              {customImagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {customImagePreviews.map((preview, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={preview} alt={`Preview ${idx + 1}`} className="w-full aspect-square object-cover rounded-lg" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-1 right-1 bg-white/80 hover:bg-white"
+                        onClick={() => removeImage(idx)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <label className="cursor-pointer block">
-                  <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">Click to upload image</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        setCustomImageFile(file)
-                        const reader = new FileReader()
-                        reader.onloadend = () => {
-                          setCustomImagePreview(reader.result as string)
-                        }
-                        reader.readAsDataURL(file)
-                      }
-                    }}
-                  />
-                </label>
               )}
+              <label className="cursor-pointer block text-center">
+                <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">Click to upload images</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => addImages(e.target.files)}
+                />
+              </label>
             </div>
           </div>
 
