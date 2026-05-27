@@ -23,6 +23,32 @@ function getStoragePathFromPublicUrl(url: string | null) {
   return decodeURIComponent(url.slice(markerIndex + marker.length))
 }
 
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('No canvas context')); return }
+      let { width, height } = img
+      const maxDim = 1920
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = (height / width) * maxDim; width = maxDim }
+        else { width = (width / height) * maxDim; height = maxDim }
+      }
+      canvas.width = width
+      canvas.height = height
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(blob => {
+        if (blob) resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' }))
+        else reject(new Error('Compression failed'))
+      }, 'image/webp', 0.8)
+    }
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 export default function AdminProductsPage() {
   const [searchParams] = useSearchParams()
   const catalogueFilter = searchParams.get('catalogue')
@@ -64,13 +90,13 @@ export default function AdminProductsPage() {
       }
 
       if (formData.imageFile) {
-        const extension = formData.imageFile.name.split('.').pop()?.toLowerCase() || 'jpg'
+        const compressed = await compressImage(formData.imageFile)
         const safeName = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-        const filePath = `${formData.catalogue}/${Date.now()}-${safeName || 'product'}.${extension}`
+        const filePath = formData.catalogue + '/' + Date.now() + '-' + (safeName || 'product') + '.webp'
 
         const { error: uploadError } = await supabase.storage
           .from(PRODUCT_IMAGES_BUCKET)
-          .upload(filePath, formData.imageFile, {
+          .upload(filePath, compressed, {
             cacheControl: '3600',
             upsert: false,
           })
