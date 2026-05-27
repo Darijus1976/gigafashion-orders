@@ -346,7 +346,7 @@ ${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).j
 </body></html>`;
 }
 
-function buildFittingPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): string {
+function buildFittingPdfHtmlNoPrices(data: Awaited<ReturnType<typeof getOrderData>>): string {
   const { order, fittingSessions } = data;
 
   return `<!DOCTYPE html>
@@ -385,8 +385,41 @@ ${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).j
 </div>` : ''}
 `).join('') : '<p>No fitting sessions recorded.</p>'}
 
-<div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Fitting Sheet</div>
+<div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Fitting Sheet (Siuvėjoms)</div>
 </body></html>`;
+}
+
+function buildFittingPdfHtmlWithPrices(data: Awaited<ReturnType<typeof getOrderData>>): string {
+  const { order, fittingSessions } = data;
+
+  return '<!DOCTYPE html>' +
+'<html><head><meta charset="utf-8"><style>' +
+'  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }' +
+'  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }' +
+'  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }' +
+'  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }' +
+'  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }' +
+'  th { background: #f5f5f5; font-weight: 600; }' +
+'  .field { margin-bottom: 6px; }' +
+'  .field-label { font-weight: 600; display: inline-block; width: 160px; }' +
+'  .total-row td { font-weight: 700; border-top: 2px solid #333; }' +
+'  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }' +
+'  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }' +
+'  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }' +
+'</style></head><body>' +
+'<h1>Fitting Sheet — ' + order.client_name + '</h1>' +
+'<div class="field"><span class="field-label">Order Number:</span> ' + order.order_number + '</div>' +
+'<div class="field"><span class="field-label">Phone:</span> ' + order.phone + '</div>' +
+(fittingSessions.length > 0 ? fittingSessions.map((s: any, si: number) => {
+  const sessionTotal = s.notes.reduce((sum: number, n: any) => sum + Number(n.price || 0), 0);
+  return '<h2>Fitting Session ' + (si + 1) + ' — ' + s.date + '</h2>' +
+    (s.notes && s.notes.length > 0 ? '<table><tr><th>#</th><th>Measurement / Alteration Note</th><th>Price (€)</th></tr>' +
+      s.notes.map((n: any, ni: number) => '<tr><td>' + (ni + 1) + '</td><td>' + (n.description || '') + '</td><td>€' + Number(n.price || 0).toFixed(2) + '</td></tr>').join('') +
+      '<tr class="total-row"><td colspan="2">Session Total</td><td>€' + sessionTotal.toFixed(2) + '</td></tr></table>' : '<p>No measurement notes recorded.</p>') +
+    (s.photoUrls && s.photoUrls.length > 0 ? '<div class="photos">' + s.photoUrls.map((url: string) => '<img src="' + url + '" alt="Fitting photo" />').join('') + '</div>' : '');
+}).join('') : '<p>No fitting sessions recorded.</p>') +
+'<div class="footer">Generated: ' + new Date().toLocaleString('lt-LT') + ' | Giga Fashion — Fitting Sheet (Pilnas)</div>' +
+'</body></html>';
 }
 
 async function generatePdfBuffer(html: string): Promise<Buffer> {
@@ -504,15 +537,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (pdfType === 'fiting') {
-      const html = buildFittingPdfHtml(data);
-      const pdfBuffer = await generatePdfBuffer(html);
-      const filename = `${filePrefix}_fiting.pdf`;
-      const link = await uploadPdfToDrive(accessToken, targetFolderId, filename, pdfBuffer);
+      const noPricesHtml = buildFittingPdfHtmlNoPrices(data);
+      const withPricesHtml = buildFittingPdfHtmlWithPrices(data);
+
+      const [noPricesPdf, withPricesPdf] = await Promise.all([
+        generatePdfBuffer(noPricesHtml),
+        generatePdfBuffer(withPricesHtml),
+      ]);
+
+      const [noPricesLink, withPricesLink] = await Promise.all([
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_siuvejoms.pdf`, noPricesPdf),
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_pilnas.pdf`, withPricesPdf),
+      ]);
 
       return res.status(200).json({
         success: true,
-        message: 'Fitting sheet PDF uploaded to Google Drive',
-        driveLink: link,
+        message: 'Fitting sheet PDFs uploaded to Google Drive',
+        seamstressLink: noPricesLink,
+        fullLink: withPricesLink,
       });
     }
 
@@ -529,11 +571,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_klientui.pdf`, clientPdf),
     ]);
 
+    let fittingLinks = null;
+    if (data.fittingSessions.length > 0) {
+      const noPricesHtml = buildFittingPdfHtmlNoPrices(data);
+      const withPricesHtml = buildFittingPdfHtmlWithPrices(data);
+      const [noPricesPdf, withPricesPdf] = await Promise.all([
+        generatePdfBuffer(noPricesHtml),
+        generatePdfBuffer(withPricesHtml),
+      ]);
+      const [noPricesLink, withPricesLink] = await Promise.all([
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_siuvejoms.pdf`, noPricesPdf),
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_pilnas.pdf`, withPricesPdf),
+      ]);
+      fittingLinks = { seamstressLink: noPricesLink, fullLink: withPricesLink };
+    }
+
     return res.status(200).json({
       success: true,
       message: 'PDFs generated and uploaded to Google Drive',
       fullArchiveLink: fullLink,
       clientCopyLink: clientLink,
+      fittingLinks,
     });
   } catch (error) {
     console.error('generate-pdf error:', error);
