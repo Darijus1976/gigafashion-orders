@@ -61,6 +61,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [customImageFiles, setCustomImageFiles] = useState<File[]>([])
   const [customImagePreviews, setCustomImagePreviews] = useState<string[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
 
   const dressItems = orderItems.filter(item => item.type === 'dress' || item.type === 'custom')
 
@@ -134,17 +135,25 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
     }
   }
 
-  const addImages = (files: FileList | null) => {
+  const addImages = async (files: FileList | null) => {
     if (!files) return
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return
-      setCustomImageFiles(prev => [...prev, file])
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setCustomImagePreviews(prev => [...prev, reader.result as string])
+    setUploadingImages(true)
+    const tempId = crypto.randomUUID()
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue
+      try {
+        const filePath = 'custom-dress/' + tempId + '/' + Date.now() + '.webp'
+        const { error: uploadError } = await supabase.storage
+          .from('order-photos')
+          .upload(filePath, file, { cacheControl: '3600', upsert: false })
+        if (uploadError) throw uploadError
+        const { data } = supabase.storage.from('order-photos').getPublicUrl(filePath)
+        setCustomImagePreviews(prev => [...prev, data.publicUrl])
+      } catch (e) {
+        console.error('Upload error:', e)
       }
-      reader.readAsDataURL(file)
-    })
+    }
+    setUploadingImages(false)
   }
 
   const removeImage = (idx: number) => {
@@ -327,7 +336,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
               )}
               <label className="cursor-pointer block text-center">
                 <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">Click to upload images</p>
+                <p className="text-sm text-muted-foreground mb-2">{uploadingImages ? 'Uploading...' : 'Click to upload images'}</p>
                 <input
                   type="file"
                   accept="image/*"
