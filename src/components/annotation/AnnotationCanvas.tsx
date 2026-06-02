@@ -97,14 +97,18 @@ export function AnnotationCanvas({
     }
   }, [brushColor, brushSize])
 
-  // Handle S-Pen / stylus detection
+  // Handle S-Pen / stylus / touch / mouse detection
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (!fabricCanvasRef.current) return
 
-    // Check if using stylus (S-Pen)
-    if (e.pointerType === 'pen') {
-      setIsDrawing(true)
-      
+    // Accept all input types: pen (S-Pen), touch (finger), mouse
+    // For S-Pen, also apply pressure sensitivity
+    const isPen = e.pointerType === 'pen'
+    const isStylus = e.pointerType === 'pen' || (e as any).twist !== undefined // Some styluses report differently
+    
+    setIsDrawing(true)
+    
+    if (isPen || isStylus) {
       // Pressure sensitivity (0 to 1)
       const pressureValue = e.pressure || 0.5
       setPressure(pressureValue)
@@ -118,7 +122,10 @@ export function AnnotationCanvas({
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || !fabricCanvasRef.current) return
 
-    if (e.pointerType === 'pen') {
+    const isPen = e.pointerType === 'pen'
+    const isStylus = e.pointerType === 'pen' || (e as any).twist !== undefined
+    
+    if (isPen || isStylus) {
       const pressureValue = e.pressure || 0.5
       setPressure(pressureValue)
       
