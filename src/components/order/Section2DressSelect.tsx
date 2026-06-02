@@ -59,6 +59,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
+  const [catalogueNotes, setCatalogueNotes] = useState('')
   const [customImageFiles, setCustomImageFiles] = useState<File[]>([])
   const [customImagePreviews, setCustomImagePreviews] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -105,15 +106,19 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
 
   const handleAddCatalogueDress = () => {
     if (selectedProduct) {
+      const desc = catalogueNotes.trim()
+        ? `${selectedProduct.name} (${catalogueNotes.trim()})`
+        : selectedProduct.name
       onAddToOrder({
         id: crypto.randomUUID(),
         type: 'catalogue',
-        description: selectedProduct.name,
+        description: desc,
         price: selectedProduct.price,
         productId: selectedProduct.id,
         imageUrl: selectedProduct.image_url || undefined,
       })
       setSelectedProduct(null)
+      setCatalogueNotes('')
     }
   }
 
@@ -253,6 +258,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           onClick={() => {
             setSelectedMode(null)
             setSelectedProduct(null)
+            setCatalogueNotes('')
             setCustomDescription('')
             setCustomPrice('')
             setCustomImageFiles([])
@@ -297,15 +303,23 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             </div>
           )}
 
-          {selectedProduct && (
-            <Button 
-              className="w-full"
-              onClick={handleAddCatalogueDress}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add to order: {selectedProduct.name} (€{selectedProduct.price.toFixed(2)})
-            </Button>
-          )}
+    {selectedProduct && (
+  <div className="space-y-3">
+    <Textarea
+      placeholder="Pastabos: pvz. tokia pati tik trumpesnė..."
+      value={catalogueNotes}
+      onChange={(e) => setCatalogueNotes(e.target.value)}
+      rows={2}
+    />
+    <Button 
+      className="w-full"
+      onClick={handleAddCatalogueDress}
+    >
+      <Plus className="w-4 h-4 mr-2" />
+      Add to order: {selectedProduct.name} (€{selectedProduct.price.toFixed(2)})
+    </Button>
+  </div>
+)}      
         </div>
       )}
 
