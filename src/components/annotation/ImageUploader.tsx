@@ -419,11 +419,11 @@ export function ImageUploader({
                         type="button"
                         variant="secondary"
                         size="sm"
-                        className="absolute bottom-2 left-2 right-2 opacity-0 hover:opacity-100 transition-opacity"
+                        className="absolute bottom-2 left-2 right-2 bg-white/90 hover:bg-white shadow-sm"
                         onClick={() => handleAnnotate(file)}
                       >
                         <Pencil className="w-4 h-4 mr-1" />
-                        Piešti (S-Pen)
+                        Piešti
                       </Button>
                     </>
                   )}
