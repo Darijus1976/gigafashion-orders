@@ -24,15 +24,19 @@ interface OrderFormFooterProps {
   onSave: (data: {
     staffMember: StaffMember
     orderDate: string
-  }) => void
+  }, pdfMode: 'full' | 'fiting' | 'all', skipPdf: boolean) => void
   isSaving?: boolean
   totalAmount: number
+  skipPdf: boolean
+  setSkipPdf: (v: boolean) => void
 }
 
 export function OrderFormFooter({
   onSave,
   isSaving = false,
   totalAmount,
+  skipPdf,
+  setSkipPdf,
 }: OrderFormFooterProps) {
   const [staffMember, setStaffMember] = useState<StaffMember | ''>('')
   const [orderDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'))
@@ -47,7 +51,7 @@ export function OrderFormFooter({
       onSave({
         staffMember,
         orderDate,
-      })
+      }, 'full', skipPdf)
     }
   }
 
@@ -107,6 +111,17 @@ export function OrderFormFooter({
               }).format(totalAmount)}
             </p>
           </div>
+
+          {/* Skip PDF checkbox */}
+          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={skipPdf}
+              onChange={(e) => setSkipPdf(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            Skip PDF
+          </label>
 
           {/* Save Button */}
           <Button

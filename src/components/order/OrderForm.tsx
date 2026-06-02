@@ -100,6 +100,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     initialOrderNumber || blankOnMount ? createInitialFittingSessions : getInitialFittingSessions
   )
   const [isSaving, setIsSaving] = useState(false)
+  const [skipPdf, setSkipPdf] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [savedOrderId, setSavedOrderId] = useState<string | null>(null)
   const [orderNumber, setOrderNumber] = useState<string>(initialOrderNumber || '')
@@ -285,15 +286,15 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     }
   }
 
-  const triggerPdfGeneration = (orderId: string, mode: 'full' | 'fiting' | 'all' = 'full') => {
+  const triggerPdfGeneration = (orderId: string, mode: 'full' | 'fiting' | 'all' = 'full', skipPdf = false) => {
     const blob = new Blob([JSON.stringify({ orderId })], { type: 'application/json' });
-    navigator.sendBeacon(`/api/generate-pdf?mode=${mode}`, blob);
+    navigator.sendBeacon(`/api/generate-pdf?mode=${mode}&skipPdf=${skipPdf}`, blob);
   }
 
   const handleSaveOrder = async (data: {
     staffMember: string
     orderDate: string
-  }, pdfMode: 'full' | 'fiting' | 'all' = 'full') => {
+  }, pdfMode: 'full' | 'fiting' | 'all' = 'full', skipPdf = false) => {
     setIsSaving(true)
     try {
       const clientInfoResult = clientInfoSchema.safeParse(clientInfoData)
@@ -390,7 +391,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       window.localStorage.removeItem(FITTING_DRAFT_KEY)
       setIsSaving(false)
       if (initialOrderNumber) {
-        if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode)
+        if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
         alert(`Order saved: ${result.orderNumber}`)
         window.location.href = '/admin'
         return
@@ -410,7 +411,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setAlterationRows(createInitialAlterationRows())
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
-      if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode)
+      if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
       alert(`Order saved: ${result.orderNumber}`)
       window.location.href = '/admin'
     } catch (error) {
@@ -688,6 +689,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         onSave={handleSaveOrder}
         isSaving={isSaving}
         totalAmount={totalAmount}
+        skipPdf={skipPdf}
+        setSkipPdf={setSkipPdf}
       />
     </div>
   )

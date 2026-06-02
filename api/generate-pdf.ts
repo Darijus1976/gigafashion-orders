@@ -498,10 +498,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
     const mode = typeof req.query.mode === 'string' ? req.query.mode : 'full';
+    const skipPdf = req.query.skipPdf === 'true';
     const orderId = req.body?.orderId;
 
     if (!orderId) {
       return res.status(400).json({ error: 'Missing orderId in request body' });
+    }
+
+    if (skipPdf) {
+      return res.status(200).json({ success: true, message: 'PDF generation skipped', skipped: true });
     }
 
     const data = await getOrderData(supabase, orderId);
