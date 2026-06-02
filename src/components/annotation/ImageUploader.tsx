@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Camera, ImageIcon, Upload, X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Camera, ImageIcon, Upload, X, Loader2, CheckCircle2, AlertCircle, Pencil } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { ImageAnnotationDialog } from './ImageAnnotationDialog'
 
 interface UploadFile {
   id: string
@@ -36,6 +37,10 @@ export function ImageUploader({
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
+  
+  // Annotation dialog state
+  const [annotationFile, setAnnotationFile] = useState<UploadFile | null>(null)
+  const [isAnnotationOpen, setIsAnnotationOpen] = useState(false)
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024
 
@@ -239,6 +244,45 @@ export function ImageUploader({
     setFiles([])
   }, [files])
 
+  // Open annotation dialog
+  const handleAnnotate = useCallback((file: UploadFile) => {
+    if (file.uploadedUrl) {
+      setAnnotationFile(file)
+      setIsAnnotationOpen(true)
+    }
+  }, [])
+
+  // Handle annotation save
+  const handleAnnotationSave = useCallback((newUrl: string) => {
+    if (annotationFile) {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === annotationFile.id
+            ? { ...f, uploadedUrl: newUrl, preview: newUrl }
+            : f
+        )
+      )
+      // Update order_photos table to mark as annotated
+      supabase
+        .from('order_photos')
+        .update({ is_annotated: true, storage_path: newUrl } as never)
+        .eq('order_id', orderId)
+        .eq('storage_path', annotationFile.uploadedUrl)
+        .then(({ error }) => {
+          if (error) console.warn('Failed to update annotation status:', error)
+        })
+    }
+    setAnnotationFile(null)
+    setIsAnnotationOpen(false)
+  }, [annotationFile, orderId])
+
+  // Get file path for annotation dialog
+  const getAnnotationFilePath = useCallback(() => {
+    if (!annotationFile?.uploadedUrl) return ''
+    const match = annotationFile.uploadedUrl.match(/\/order-photos\/(.+)$/)
+    return match ? match[1] : ''
+  }, [annotationFile])
+
   const pendingCount = files.filter((f) => f.status === 'pending').length
   const uploadingCount = files.filter((f) => f.status === 'uploading' || f.status === 'compressing').length
   const successCount = files.filter((f) => f.status === 'success').length
@@ -366,9 +410,22 @@ export function ImageUploader({
                   )}
                   
                   {file.status === 'success' && (
-                    <div className="absolute top-2 right-2">
-                      <CheckCircle2 className="w-6 h-6 text-green-600 bg-white rounded-full" />
-                    </div>
+                    <>
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle2 className="w-6 h-6 text-green-600 bg-white rounded-full" />
+                      </div>
+                      {/* Annotate Button - S-Pen support */}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute bottom-2 left-2 right-2 opacity-0 hover:opacity-100 transition-opacity"
+                        onClick={() => handleAnnotate(file)}
+                      >
+                        <Pencil className="w-4 h-4 mr-1" />
+                        Piešti (S-Pen)
+                      </Button>
+                    </>
                   )}
                   
                   {file.status === 'error' && (
@@ -463,6 +520,18 @@ export function ImageUploader({
           capture="environment"
           className="hidden"
           onChange={(e) => processFiles(e.target.files)}
+        />
+
+        {/* S-Pen Annotation Dialog */}
+        <ImageAnnotationDialog
+          isOpen={isAnnotationOpen}
+          onClose={() => {
+            setIsAnnotationOpen(false)
+            setAnnotationFile(null)
+          }}
+          imageUrl={annotationFile?.uploadedUrl || ''}
+          filePath={getAnnotationFilePath()}
+          onSaveComplete={handleAnnotationSave}
         />
       </CardContent>
     </Card>
