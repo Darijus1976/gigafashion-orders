@@ -34,12 +34,14 @@ interface Section5FittingProps {
   orderId: string
   sessions: FittingSession[]
   setSessions: React.Dispatch<React.SetStateAction<FittingSession[]>>
+  onSaveFitting: () => Promise<void>
+  isSaving: boolean
 }
 
 export const MIN_FITTING_NOTES = 3
 export const MAX_FITTING_NOTES = 8
 
-export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sessions, setSessions }: Section5FittingProps) {
+export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sessions, setSessions, onSaveFitting, isSaving }: Section5FittingProps) {
   const activeSession = sessions.find(s => s.isActive) || sessions[0]
 
   const updateNote = (sessionId: string, noteId: string, field: keyof FittingNote, value: string) => {
@@ -360,6 +362,16 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
       <p className="text-xs text-muted-foreground">
         * Press Enter or ✓ button to add note to order
       </p>
+
+      <Button
+        type="button"
+        onClick={onSaveFitting}
+        disabled={isSaving}
+        className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
+      >
+        <Scissors className="w-4 h-4 mr-2" />
+        {isSaving ? 'Saving...' : 'Save Fitting'}
+      </Button>
     </div>
   )
 }

@@ -497,7 +497,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    const pdfType = typeof req.query.type === 'string' ? req.query.type : 'full';
+    const mode = typeof req.query.mode === 'string' ? req.query.mode : 'full';
     const orderId = req.body?.orderId;
 
     if (!orderId) {
@@ -519,7 +519,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let targetFolderId = clientFolderId;
 
-    if (pdfType !== 'fiting') {
+    if (mode === 'fiting') {
+      const now = new Date();
+      const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
+    } else {
       const { count } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
@@ -532,13 +536,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
       }
-    } else {
-      const now = new Date();
-      const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
     }
 
-    if (pdfType === 'fiting') {
+    if (mode === 'fiting') {
       const noPricesHtml = buildFittingPdfHtmlNoPrices(data);
       const withPricesHtml = buildFittingPdfHtmlWithPrices(data);
 
@@ -573,8 +573,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_klientui.pdf`, clientPdf),
     ]);
 
-    let fittingLinks = null;
-    if (data.fittingSessions.length > 0) {
+    if (mode === 'all' && data.fittingSessions.length > 0) {
       const noPricesHtml = buildFittingPdfHtmlNoPrices(data);
       const withPricesHtml = buildFittingPdfHtmlWithPrices(data);
       const [noPricesPdf, withPricesPdf] = await Promise.all([
@@ -585,7 +584,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_siuvejoms.pdf`, noPricesPdf),
         uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_pilnas.pdf`, withPricesPdf),
       ]);
-      fittingLinks = { seamstressLink: noPricesLink, fullLink: withPricesLink };
+      return res.status(200).json({
+        success: true,
+        message: 'All PDFs generated and uploaded to Google Drive',
+        fullArchiveLink: fullLink,
+        clientCopyLink: clientLink,
+        fittingLinks: { seamstressLink: noPricesLink, fullLink: withPricesLink },
+      });
     }
 
     return res.status(200).json({
@@ -593,7 +598,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       message: 'PDFs generated and uploaded to Google Drive',
       fullArchiveLink: fullLink,
       clientCopyLink: clientLink,
-      fittingLinks,
     });
   } catch (error) {
     console.error('generate-pdf error:', error);

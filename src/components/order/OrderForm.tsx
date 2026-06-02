@@ -285,15 +285,15 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     }
   }
 
-  const triggerPdfGeneration = (orderId: string) => {
+  const triggerPdfGeneration = (orderId: string, mode: 'full' | 'fiting' | 'all' = 'full') => {
     const blob = new Blob([JSON.stringify({ orderId })], { type: 'application/json' });
-    navigator.sendBeacon('/api/generate-pdf', blob);
+    navigator.sendBeacon(`/api/generate-pdf?mode=${mode}`, blob);
   }
 
   const handleSaveOrder = async (data: {
     staffMember: string
     orderDate: string
-  }) => {
+  }, pdfMode: 'full' | 'fiting' | 'all' = 'full') => {
     setIsSaving(true)
     try {
       const clientInfoResult = clientInfoSchema.safeParse(clientInfoData)
@@ -390,7 +390,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       window.localStorage.removeItem(FITTING_DRAFT_KEY)
       setIsSaving(false)
       if (initialOrderNumber) {
-        if (result.orderId) triggerPdfGeneration(result.orderId)
+        if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode)
         alert(`Order saved: ${result.orderNumber}`)
         window.location.href = '/admin'
         return
@@ -410,13 +410,21 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setAlterationRows(createInitialAlterationRows())
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
-      if (result.orderId) triggerPdfGeneration(result.orderId)
+      if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode)
       alert(`Order saved: ${result.orderNumber}`)
       window.location.href = '/admin'
     } catch (error) {
       setIsSaving(false)
       alert(error instanceof Error ? error.message : 'Failed to save order')
     }
+  }
+
+  const handleSaveFitting = async () => {
+    if (!initialOrderNumber) {
+      alert('Please save the order first before saving fitting data')
+      return
+    }
+    await handleSaveOrder({ staffMember: '', orderDate: '' }, 'fiting')
   }
 
   const toggleSection = (section: number) => {
@@ -637,6 +645,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             orderId={savedOrderId || orderNumber}
             sessions={fittingSessions}
             setSessions={setFittingSessions}
+            onSaveFitting={handleSaveFitting}
+            isSaving={isSaving}
           />
         </div>
       </div>
