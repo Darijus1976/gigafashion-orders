@@ -510,6 +510,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const safeFirst = sanitizeFilename(firstName);
     const safeLast = sanitizeFilename(lastName);
     const filePrefix = safeLast ? `${safeFirst}-${safeLast}` : safeFirst;
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filePrefixTs = `${filePrefix}_${ts}`;
 
     const accessToken = await getAccessToken();
 
@@ -546,8 +548,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ]);
 
       const [noPricesLink, withPricesLink] = await Promise.all([
-        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_siuvejoms.pdf`, noPricesPdf),
-        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_pilnas.pdf`, withPricesPdf),
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_siuvejoms.pdf`, noPricesPdf),
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_pilnas.pdf`, withPricesPdf),
       ]);
 
       return res.status(200).json({
@@ -567,8 +569,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ]);
 
     const [fullLink, clientLink] = await Promise.all([
-      uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_pilnas.pdf`, fullPdf),
-      uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_klientui.pdf`, clientPdf),
+      uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_pilnas.pdf`, fullPdf),
+      uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_klientui.pdf`, clientPdf),
     ]);
 
     let fittingLinks = null;
@@ -580,8 +582,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         generatePdfBuffer(withPricesHtml),
       ]);
       const [noPricesLink, withPricesLink] = await Promise.all([
-        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_siuvejoms.pdf`, noPricesPdf),
-        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefix}_fiting_pilnas.pdf`, withPricesPdf),
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_siuvejoms.pdf`, noPricesPdf),
+        uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_pilnas.pdf`, withPricesPdf),
       ]);
       fittingLinks = { seamstressLink: noPricesLink, fullLink: withPricesLink };
     }
