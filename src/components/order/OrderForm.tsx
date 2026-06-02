@@ -294,7 +294,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   const handleSaveOrder = async (data: {
     staffMember: string
     orderDate: string
-  }, pdfMode: 'full' | 'fiting' | 'all' = 'full', skipPdf = false) => {
+  }, pdfMode: 'full' | 'fiting' | 'all' = 'full', skipPdf = false, noRedirect = false) => {
     setIsSaving(true)
     try {
       const clientInfoResult = clientInfoSchema.safeParse(clientInfoData)
@@ -393,7 +393,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       if (initialOrderNumber) {
         if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
         alert(`Order saved: ${result.orderNumber}`)
-        window.location.href = '/admin'
+        if (!noRedirect) window.location.href = '/admin'
         return
       }
 
@@ -425,7 +425,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       alert('Please save the order first before saving fitting data')
       return
     }
-    await handleSaveOrder({ staffMember: '', orderDate: '' }, 'fiting')
+    await handleSaveOrder({ staffMember: '', orderDate: '' }, 'fiting', false, true)
   }
 
   const toggleSection = (section: number) => {

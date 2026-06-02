@@ -524,23 +524,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     let targetFolderId = clientFolderId;
 
-    if (mode === 'fiting') {
+    const { count } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('client_name', data.order.client_name);
+
+    const hasPreviousOrders = (count || 0) > 1;
+
+    if (hasPreviousOrders) {
       const now = new Date();
       const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
-    } else {
-      const { count } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('client_name', data.order.client_name);
-
-      const hasPreviousOrders = (count || 0) > 1;
-
-      if (hasPreviousOrders) {
-        const now = new Date();
-        const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        targetFolderId = await findOrCreateFolder(accessToken, clientFolderId, yearMonth);
-      }
     }
 
     if (mode === 'fiting') {
