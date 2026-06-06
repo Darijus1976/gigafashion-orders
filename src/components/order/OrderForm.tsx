@@ -667,6 +667,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
               orderItems={orderItems}
               payments={payments}
               setPayments={setPayments}
+              orderId={savedOrderId}
               onRemoveItem={(id, deletedBy) => {
                 setOrderItems(prev => prev.map(item => 
                   item.id === id 

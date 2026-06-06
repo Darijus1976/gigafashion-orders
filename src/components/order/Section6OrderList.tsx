@@ -1,4 +1,4 @@
-import { useState, useMemo, type Dispatch, type SetStateAction } from 'react'
+import { useState, useMemo, useCallback, type Dispatch, type SetStateAction } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Trash2, Receipt, Euro, User } from 'lucide-react'
+import { Plus, Trash2, Receipt, Euro, User, FileText, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 
 const STAFF_MEMBERS = [
@@ -52,6 +52,7 @@ interface Section6OrderListProps {
   payments: Payment[]
   setPayments: Dispatch<SetStateAction<Payment[]>>
   onRemoveItem?: (id: string, deletedBy: string) => void
+  orderId?: string | null
 }
 
 const categoryLabels: Record<string, string> = {
@@ -68,8 +69,31 @@ const paymentMethodLabels: Record<string, string> = {
   link: 'Link',
 }
 
-export function Section6OrderList({ orderItems, payments, setPayments, onRemoveItem }: Section6OrderListProps) {
+export function Section6OrderList({ orderItems, payments, setPayments, onRemoveItem, orderId }: Section6OrderListProps) {
   const [staffMember, setStaffMember] = useState<string>('')
+  const [receiptLoading, setReceiptLoading] = useState<Record<string, boolean>>({})
+
+  const generateReceipt = useCallback(async (payment: Payment) => {
+    if (!orderId) {
+      alert('Please save the order first before generating a receipt.')
+      return
+    }
+    setReceiptLoading(prev => ({ ...prev, [payment.id]: true }))
+    try {
+      const res = await fetch('/api/generate-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, paymentId: payment.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.details || data.error || 'Failed to generate receipt')
+      alert(`Receipt uploaded to Google Drive!\n${data.receiptLink || ''}`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to generate receipt')
+    } finally {
+      setReceiptLoading(prev => ({ ...prev, [payment.id]: false }))
+    }
+  }, [orderId])
 
   // Filter non-deleted items for totals
   const activeItems = orderItems.filter(item => !item.deleted)
@@ -277,17 +301,17 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
               {payments.map((payment, index) => (
                 <div
                   key={payment.id}
-                  className="grid grid-cols-12 gap-2 items-end p-3 rounded-lg border border-gray-200"
+                  className="flex flex-wrap gap-2 items-end p-3 rounded-lg border border-gray-200"
                 >
                   {/* Payment Number */}
-                  <div className="col-span-1">
-                    <span className="text-sm font-medium text-muted-foreground">
+                  <div className="flex items-end pb-2">
+                    <span className="text-sm font-medium text-muted-foreground w-5">
                       {index + 1}
                     </span>
                   </div>
 
                   {/* Date */}
-                  <div className="col-span-2 space-y-1">
+                  <div className="w-32 space-y-1">
                     <Label className="text-xs">Date</Label>
                     <Input
                       type="date"
@@ -299,7 +323,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   {/* Amount */}
-                  <div className="col-span-2 space-y-1">
+                  <div className="w-24 space-y-1">
                     <Label className="text-xs">Amount (€)</Label>
                     <Input
                       type="number"
@@ -314,7 +338,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   {/* Method */}
-                  <div className="col-span-2 space-y-1">
+                  <div className="w-28 space-y-1">
                     <Label className="text-xs">Method</Label>
                     <Select
                       value={payment.method}
@@ -333,7 +357,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                     </Select>
                   </div>
 
-                  <div className="col-span-2 space-y-1">
+                  <div className="w-28 space-y-1">
                     <Label className="text-xs">Accepted by *</Label>
                     <Select
                       value={payment.acceptedBy}
@@ -355,7 +379,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   {/* Notes */}
-                  <div className="col-span-4 space-y-1">
+                  <div className="flex-1 min-w-[120px] space-y-1">
                     <Label className="text-xs">Payment notes</Label>
                     <Input
                       placeholder="e.g.: Advance, order confirmation..."
@@ -366,8 +390,25 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                     />
                   </div>
 
-                  {/* Remove Button */}
-                  <div className="col-span-1">
+                  {/* Receipt + Remove Buttons */}
+                  <div className="flex gap-1 items-end">
+                    {payment.method === 'cash' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => generateReceipt(payment)}
+                        disabled={receiptLoading[payment.id]}
+                        className="text-green-700 border-green-300 hover:bg-green-50"
+                        title="Generate Cash Receipt"
+                      >
+                        {receiptLoading[payment.id] ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"
