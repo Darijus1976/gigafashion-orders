@@ -221,9 +221,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Missing GOOGLE_DRIVE_ROOT_FOLDER_ID' });
     }
 
-    const { orderId, paymentId } = req.body || {};
-    if (!orderId || !paymentId) {
-      return res.status(400).json({ error: 'Missing orderId or paymentId in request body' });
+    const { orderId, payment: paymentBody } = req.body || {};
+    if (!orderId || !paymentBody) {
+      return res.status(400).json({ error: 'Missing orderId or payment data in request body' });
+    }
+
+    if (paymentBody.method !== 'cash') {
+      return res.status(400).json({ error: 'Receipt generation is only available for cash payments' });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
@@ -238,20 +242,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: `Order not found: ${orderError?.message}` });
     }
 
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('id', paymentId)
-      .eq('order_id', orderId)
-      .single();
-
-    if (paymentError || !payment) {
-      return res.status(404).json({ error: `Payment not found: ${paymentError?.message}` });
-    }
-
-    if (payment.method !== 'cash') {
-      return res.status(400).json({ error: 'Receipt generation is only available for cash payments' });
-    }
+    const payment = {
+      payment_date: paymentBody.date,
+      amount: paymentBody.amount,
+      method: paymentBody.method,
+      notes: paymentBody.notes || null,
+      accepted_by: paymentBody.acceptedBy || null,
+    };
 
     const { firstName, lastName } = splitClientName(order.client_name);
     const clientFolderName = `${firstName} ${lastName}`.trim();

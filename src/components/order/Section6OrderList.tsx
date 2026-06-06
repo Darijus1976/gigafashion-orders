@@ -83,7 +83,16 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
       const res = await fetch('/api/generate-receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, paymentId: payment.id }),
+        body: JSON.stringify({
+          orderId,
+          payment: {
+            date: payment.date,
+            amount: payment.amount,
+            method: payment.method,
+            notes: payment.notes,
+            acceptedBy: payment.acceptedBy,
+          },
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.details || data.error || 'Failed to generate receipt')
