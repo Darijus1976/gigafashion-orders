@@ -145,7 +145,6 @@ function buildReceiptHtml(order: any, payment: any): string {
   .value { font-weight: 600; }
   .amount-box { background: #f5f5f5; border: 2px solid #1a1a1a; border-radius: 4px; padding: 12px; text-align: center; margin: 20px 0; }
   .amount-box .amount { font-size: 28px; font-weight: bold; }
-  .amount-box .currency { font-size: 16px; }
   .method-badge { display: inline-block; background: #1a1a1a; color: #fff; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
   .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 10px; }
   .signature-line { border-top: 1px solid #aaa; width: 180px; margin: 30px auto 4px auto; }
@@ -154,56 +153,56 @@ function buildReceiptHtml(order: any, payment: any): string {
 
 <div class="header">
   <h1>Giga Fashion</h1>
-  <p>Grynųjų pinigų kvitas / Cash Receipt</p>
+  <p>Cash Receipt</p>
 </div>
 
-<div class="receipt-title">Kvitas</div>
-<div class="receipt-number">Užsakymas: #${order.order_number} &nbsp;|&nbsp; Data: ${paymentDate}</div>
+<div class="receipt-title">Receipt</div>
+<div class="receipt-number">Order: #${order.order_number} &nbsp;|&nbsp; Date: ${paymentDate}</div>
 
 <div class="section">
   <div class="row">
-    <span class="label">Klientas / Client:</span>
+    <span class="label">Client:</span>
     <span class="value">${order.client_name}</span>
   </div>
   <div class="row">
-    <span class="label">Telefonas / Phone:</span>
+    <span class="label">Phone:</span>
     <span class="value">${order.phone || '—'}</span>
   </div>
   <div class="row">
-    <span class="label">Priėmė / Accepted by:</span>
+    <span class="label">Accepted by:</span>
     <span class="value">${payment.accepted_by || '—'}</span>
   </div>
-  ${payment.notes ? `<div class="row"><span class="label">Pastaba / Note:</span><span class="value">${payment.notes}</span></div>` : ''}
+  ${payment.notes ? `<div class="row"><span class="label">Note:</span><span class="value">${payment.notes}</span></div>` : ''}
 </div>
 
 <div class="amount-box">
-  <div>Sumokėta / Amount paid:</div>
+  <div>Amount paid:</div>
   <div class="amount">€${amount}</div>
 </div>
 
 <div style="text-align:center; margin-bottom: 8px;">
-  <span class="method-badge">Cash / Grynaisiais</span>
+  <span class="method-badge">Cash</span>
 </div>
 
 <div class="section">
   <div class="row">
-    <span class="label">Bendra suma / Order total:</span>
+    <span class="label">Order total:</span>
     <span class="value">€${Number(order.total_amount || 0).toFixed(2)}</span>
   </div>
   <div class="row">
-    <span class="label">Iš viso sumokėta / Total paid:</span>
+    <span class="label">Total paid:</span>
     <span class="value">€${Number(order.total_paid || 0).toFixed(2)}</span>
   </div>
   <div class="row">
-    <span class="label">Likutis / Balance due:</span>
+    <span class="label">Balance due:</span>
     <span class="value">€${(Number(order.total_amount || 0) - Number(order.total_paid || 0)).toFixed(2)}</span>
   </div>
 </div>
 
 <div class="signature-line"></div>
-<div class="signature-label">Parašas / Signature</div>
+<div class="signature-label">Signature</div>
 
-<div class="footer">Išrašyta: ${generatedAt} | Giga Fashion — Cash Receipt</div>
+<div class="footer">Generated: ${generatedAt} | Giga Fashion — Cash Receipt</div>
 </body></html>`;
 }
 
