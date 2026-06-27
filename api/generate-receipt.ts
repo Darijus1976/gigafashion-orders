@@ -274,7 +274,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const html = buildReceiptHtml(order, payment);
     const pdfBuffer = await generatePdfBuffer(html);
-    const filename = `${filePrefix}_kvitas_${ts}.pdf`;
+    const filename = `${filePrefix}_receipt_${ts}.pdf`;
     const receiptLink = await uploadPdfToDrive(accessToken, targetFolderId, filename, pdfBuffer);
 
     return res.status(200).json({
