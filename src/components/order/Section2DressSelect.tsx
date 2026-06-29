@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ShoppingBag, PenTool, Plus, ImageIcon, X } from 'lucide-react'
+import { ShoppingBag, PenTool, Plus, ImageIcon, X, Camera } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/types'
 
@@ -63,6 +63,8 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
   const [customImageFiles, setCustomImageFiles] = useState<File[]>([])
   const [customImagePreviews, setCustomImagePreviews] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
+  const customGalleryInputRef = useRef<HTMLInputElement>(null)
+  const customCameraInputRef = useRef<HTMLInputElement>(null)
 
   const dressItems = orderItems.filter(item => item.type === 'dress' || item.type === 'custom')
 
@@ -375,24 +377,54 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                   ))}
                 </div>
               )}
-              <label className="cursor-pointer block text-center">
-                <ImageIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">{uploadingImages ? 'Uploading...' : 'Click to upload images'}</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => addImages(e.target.files)}
-                />
-              </label>
+              <div className="flex gap-2 justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingImages}
+                  onClick={() => customGalleryInputRef.current?.click()}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Galerija
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingImages}
+                  onClick={() => customCameraInputRef.current?.click()}
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Kamera
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                {uploadingImages ? 'Įkeliama...' : 'Pasirinkite galeriją arba fotografuokite'}
+              </p>
+              <input
+                ref={customGalleryInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => addImages(e.target.files)}
+              />
+              <input
+                ref={customCameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => addImages(e.target.files)}
+              />
             </div>
           </div>
 
           <Button 
             className="w-full"
             onClick={handleAddCustomDress}
-            disabled={!customDescription.trim() || !customPrice}
+            disabled={!customDescription.trim() || !customPrice.trim() || isNaN(parseFloat(customPrice))}
           >
             <Plus className="w-4 h-4 mr-2" />
             Add custom dress to order
