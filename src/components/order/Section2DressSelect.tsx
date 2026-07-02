@@ -203,24 +203,41 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
         <div className="space-y-2">
           <Label>Pridetos sukneles:</Label>
           <div className="space-y-2">
-            {dressItems.map((item) => (
-              <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 space-y-3">
-                  {item.imageUrl && (
-                    <img src={item.imageUrl} alt={item.description} className="w-full max-h-96 object-contain rounded-lg bg-white" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">{item.description}</p>
-                    <p className="text-sm text-rose-600">€{item.price.toFixed(2)}</p>
+            {dressItems.map((item) => {
+              // Parse imageUrl — could be a JSON array string or a single URL
+              let imageUrls: string[] = []
+              if (item.imageUrl) {
+                if (item.imageUrl.startsWith('[')) {
+                  try { imageUrls = JSON.parse(item.imageUrl) } catch { imageUrls = [item.imageUrl] }
+                } else {
+                  imageUrls = [item.imageUrl]
+                }
+              }
+              return (
+                <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 space-y-3">
+                    {imageUrls.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {imageUrls.map((url, idx) => (
+                          <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+                            <img src={url} alt={item.description} className="w-full max-h-[500px] object-contain rounded-lg border bg-white" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{item.description}</p>
+                      <p className="text-sm text-rose-600">€{item.price.toFixed(2)}</p>
+                    </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => { if (onRemoveItem) onRemoveItem(item.id)}}>
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => { if (onRemoveItem) onRemoveItem(item.id)}}>
-                    <X className="w-4 h-4" />
-                  </Button>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
