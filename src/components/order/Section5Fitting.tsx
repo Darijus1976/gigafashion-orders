@@ -323,14 +323,21 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
           <div className="space-y-2">
             <Label>Fitting photos</Label>
             {activeSession.photoUrls?.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeSession.photoUrls.map((url) => (
-                  <img
+                  <a
                     key={url}
-                    src={url}
-                    alt="Fitting"
-                    className="aspect-square w-full rounded-md object-cover border"
-                  />
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <img
+                      src={url}
+                      alt="Fitting"
+                      className="w-full max-h-[600px] rounded-md object-contain border bg-white"
+                    />
+                  </a>
                 ))}
               </div>
             )}

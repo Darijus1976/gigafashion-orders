@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
-import { ShoppingCart, Users, Calendar, Euro } from 'lucide-react'
+import { ShoppingCart, Users, Calendar } from 'lucide-react'
 
 interface Stats {
   totalOrders: number
   todayOrders: number
-  totalRevenue: number
   uniqueClients: number
 }
 
@@ -14,7 +13,6 @@ export function DashboardStats() {
   const [stats, setStats] = useState<Stats>({
     totalOrders: 0,
     todayOrders: 0,
-    totalRevenue: 0,
     uniqueClients: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
@@ -37,10 +35,6 @@ export function DashboardStats() {
         .select('*', { count: 'exact', head: true })
         .gte('created_at', `${today}T00:00:00`)
 
-      // Total revenue (placeholder - would need order_items table)
-      // For now, show placeholder
-      const totalRevenue = 0
-
       // Unique clients
       const { data: clients } = await supabase
         .from('orders')
@@ -54,7 +48,6 @@ export function DashboardStats() {
       setStats({
         totalOrders: totalOrders || 0,
         todayOrders: todayOrders || 0,
-        totalRevenue,
         uniqueClients,
       })
     } catch (error) {
@@ -86,19 +79,12 @@ export function DashboardStats() {
       color: 'text-green-600',
       bgColor: 'bg-green-50',
     },
-    {
-      title: 'Revenue',
-      value: `€${stats.totalRevenue.toFixed(2)}`,
-      icon: Euro,
-      color: 'text-gold-600',
-      bgColor: 'bg-yellow-50',
-    },
   ]
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[...Array(4)].map((_, i) => (
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>

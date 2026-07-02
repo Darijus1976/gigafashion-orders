@@ -9,6 +9,7 @@ const DashboardPage = lazy(() => import('./pages/dashboard'))
 const AdminPage = lazy(() => import('./pages/admin/index'))
 const AdminCataloguesPage = lazy(() => import('./pages/admin/catalogues'))
 const AdminProductsPage = lazy(() => import('./pages/admin/products'))
+const AdminDeveloperPage = lazy(() => import('./pages/admin/developer'))
 const LoginPage = lazy(() => import('./pages/login'))
 
 // Loading component
@@ -30,6 +31,7 @@ function App() {
           <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
           <Route path="/admin/catalogues" element={<ProtectedRoute><AdminCataloguesPage /></ProtectedRoute>} />
           <Route path="/admin/products" element={<ProtectedRoute><AdminProductsPage /></ProtectedRoute>} />
+          <Route path="/admin/developer" element={<ProtectedRoute><AdminDeveloperPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </Suspense>

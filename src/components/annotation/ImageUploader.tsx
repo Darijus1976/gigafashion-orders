@@ -378,7 +378,7 @@ export function ImageUploader({
             </div>
 
             {/* Image Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-80 overflow-y-auto p-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
               {files.map((file) => (
                 <div
                   key={file.id}
@@ -390,11 +390,11 @@ export function ImageUploader({
                       : 'border-gray-200'
                   }`}
                 >
-                  <div className="aspect-square">
+                  <div>
                     <img
                       src={file.preview}
                       alt="Upload preview"
-                      className="w-full h-full object-cover"
+                      className="w-full max-h-[500px] object-contain bg-white"
                     />
                   </div>
                   
@@ -456,7 +456,7 @@ export function ImageUploader({
               
               {/* Add More Button */}
               <label className="cursor-pointer">
-                <div className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                <div className="min-h-[120px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-gray-400 hover:bg-gray-50 transition-colors">
                   <Upload className="w-8 h-8 mb-2" />
                   <span className="text-xs">Pridėti</span>
                 </div>

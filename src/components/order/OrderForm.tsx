@@ -577,16 +577,17 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           <span>2. Dress Selection</span>
           <span>{isExpanded[2] ? '−' : '+'}</span>
         </button>
-        {isExpanded[2] && (
-          <div className="border-t border-gray-200 p-4">
-            <Section2DressSelect 
-              occasion={selectedOccasion}
-              onAddToOrder={handleAddDressToOrder}
-              orderItems={orderItems}
-              onRemoveItem={(id) => setOrderItems(prev => prev.filter(item => item.id !== id))}
-            />
-          </div>
-        )}
+        <div
+          className="border-t border-gray-200 p-4"
+          style={{ display: isExpanded[2] ? 'block' : 'none' }}
+        >
+          <Section2DressSelect 
+            occasion={selectedOccasion}
+            onAddToOrder={handleAddDressToOrder}
+            orderItems={orderItems}
+            onRemoveItem={(id) => setOrderItems(prev => prev.filter(item => item.id !== id))}
+          />
+        </div>
       </div>
 
       {/* Section 3 - Alterations */}
@@ -620,11 +621,12 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           <span>4. Extras</span>
           <span>{isExpanded[4] ? '−' : '+'}</span>
         </button>
-        {isExpanded[4] && (
-          <div className="border-t border-gray-200 p-4">
-            <Section4Extras onAddToOrder={handleAddExtraToOrder} />
-          </div>
-        )}
+        <div
+          className="border-t border-gray-200 p-4"
+          style={{ display: isExpanded[4] ? 'block' : 'none' }}
+        >
+          <Section4Extras onAddToOrder={handleAddExtraToOrder} />
+        </div>
       </div>
 
       {/* Section 5 - Fitting */}
@@ -661,28 +663,29 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           <span>6. Order Summary</span>
           <span>{isExpanded[6] ? '−' : '+'}</span>
         </button>
-        {isExpanded[6] && (
-          <div className="border-t border-gray-200 p-4">
-            <Section6OrderList 
-              orderItems={orderItems}
-              payments={payments}
-              setPayments={setPayments}
-              orderId={savedOrderId}
-              onRemoveItem={(id, deletedBy) => {
-                setOrderItems(prev => prev.map(item => 
-                  item.id === id 
-                    ? { 
-                        ...item, 
-                        deleted: true, 
-                        deletedAt: new Date().toISOString(), 
-                        deletedBy 
-                      } 
-                    : item
-                ))
-              }}
-            />
-          </div>
-        )}
+        <div
+          className="border-t border-gray-200 p-4"
+          style={{ display: isExpanded[6] ? 'block' : 'none' }}
+        >
+          <Section6OrderList 
+            orderItems={orderItems}
+            payments={payments}
+            setPayments={setPayments}
+            orderId={savedOrderId}
+            onRemoveItem={(id, deletedBy) => {
+              setOrderItems(prev => prev.map(item => 
+                item.id === id 
+                  ? { 
+                      ...item, 
+                      deleted: true, 
+                      deletedAt: new Date().toISOString(), 
+                      deletedBy 
+                    } 
+                  : item
+              ))
+            }}
+          />
+        </div>
       </div>
 
       {/* Footer with Save Button */}

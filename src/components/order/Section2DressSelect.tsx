@@ -361,10 +361,12 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             <Label>Referencines nuotraukos</Label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
               {customImagePreviews.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {customImagePreviews.map((preview, idx) => (
                     <div key={idx} className="relative">
-                      <img src={preview} alt={`Preview ${idx + 1}`} className="w-full aspect-square object-cover rounded-lg" />
+                      <a href={preview} target="_blank" rel="noopener noreferrer">
+                        <img src={preview} alt={`Preview ${idx + 1}`} className="w-full max-h-[500px] object-contain rounded-lg border bg-white" />
+                      </a>
                       <Button
                         variant="ghost"
                         size="sm"

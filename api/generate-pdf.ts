@@ -192,8 +192,10 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
   .field-label { font-weight: 600; display: inline-block; width: 160px; }
   .total-row td { font-weight: 700; border-top: 2px solid #333; }
   .note { font-style: italic; color: #555; }
-  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }
+  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .item-photos { margin-top: 6px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
 </style></head><body>
 <h1>Order #${order.order_number} — Full Archive</h1>
@@ -211,16 +213,16 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <spa
 
 <h2>Order Items</h2>
 <table>
-<tr><th>#</th><th>Image</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
+<tr><th>#</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
 ${activeItems.map((item: any, i: number) => `
 <tr>
   <td>${i + 1}</td>
-  <td>${item.image_url ? getImageUrls(item.image_url).map(u => '<img src="' + u + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;" />').join('') : ''}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
   <td>€${Number(item.price || 0).toFixed(2)}</td>
-</tr>`).join('')}
-<tr class="total-row"><td colspan="4">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
+</tr>
+${item.image_url ? `<tr><td colspan="4"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}`).join('')}
+<tr class="total-row"><td colspan="3">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
 </table>
 
 <h2>Payments</h2>
@@ -292,8 +294,10 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
   th { background: #f5f5f5; font-weight: 600; }
   .field { margin-bottom: 6px; }
   .field-label { font-weight: 600; display: inline-block; width: 160px; }
-  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }
+  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .item-photos { margin-top: 6px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
 </style></head><body>
 <h1>Order #${order.order_number} — Client Copy</h1>
@@ -311,14 +315,14 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${or
 
 <h2>Order Items</h2>
 <table>
-<tr><th>#</th><th>Image</th><th>Type</th><th>Description</th></tr>
+<tr><th>#</th><th>Type</th><th>Description</th></tr>
 ${activeItems.map((item: any, i: number) => `
 <tr>
   <td>${i + 1}</td>
-  <td>${item.image_url ? getImageUrls(item.image_url).map(u => '<img src="' + u + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;" />').join('') : ''}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
-</tr>`).join('')}
+</tr>
+${item.image_url ? `<tr><td colspan="3"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}`).join('')}
 </table>
 
 ${fittingSessions.length > 0 ? `
@@ -359,8 +363,8 @@ function buildFittingPdfHtmlNoPrices(data: Awaited<ReturnType<typeof getOrderDat
   th { background: #f5f5f5; font-weight: 600; }
   .field { margin-bottom: 6px; }
   .field-label { font-weight: 600; display: inline-block; width: 160px; }
-  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }
+  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
 </style></head><body>
 <h1>Fitting Sheet — ${order.client_name}</h1>
@@ -403,8 +407,8 @@ function buildFittingPdfHtmlWithPrices(data: Awaited<ReturnType<typeof getOrderD
 '  .field { margin-bottom: 6px; }' +
 '  .field-label { font-weight: 600; display: inline-block; width: 160px; }' +
 '  .total-row td { font-weight: 700; border-top: 2px solid #333; }' +
-'  .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }' +
-'  .photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid #e0e0e0; border-radius: 4px; }' +
+'  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }' +
+'  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }' +
 '  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }' +
 '</style></head><body>' +
 '<h1>Fitting Sheet — ' + order.client_name + '</h1>' +

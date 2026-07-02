@@ -1,11 +1,10 @@
 import { ReactNode } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { isAdmin } from '@/lib/auth/admin'
 
 interface ProtectedRouteProps {
   children: ReactNode
 }
-
-const ADMIN_EMAIL = 'darijusbrizgys@gmail.com'
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth()
@@ -18,7 +17,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
-  if (!user || user.email !== ADMIN_EMAIL) {
+  if (!user || !isAdmin(user)) {
     window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
     return null
   }

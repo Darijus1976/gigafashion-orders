@@ -1,4 +1,4 @@
-import { FileText, FolderOpen, LayoutGrid } from 'lucide-react'
+import { FileText, FolderOpen, LayoutGrid, Code } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -22,6 +22,12 @@ export default function AdminPage() {
       href: '/dashboard',
       icon: FolderOpen,
     },
+    {
+      title: 'Developer',
+      description: 'Revenue ir kita vidinė statistika (reikalauja slaptažodžio)',
+      href: '/admin/developer',
+      icon: Code,
+    },
   ]
 
   return (
@@ -32,7 +38,7 @@ export default function AdminPage() {
           <p className="mt-2 text-muted-foreground">Pasirinkite, ką norite daryti</p>
         </header>
 
-        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-4">
           {choices.map((choice) => {
             const Icon = choice.icon
             return (
