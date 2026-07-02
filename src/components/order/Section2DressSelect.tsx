@@ -427,7 +427,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                 accept="image/*"
                 multiple
                 className="hidden"
-                onChange={(e) => addImages(e.target.files)}
+                onChange={(e) => { addImages(e.target.files); e.target.value = '' }}
               />
               <input
                 ref={customCameraInputRef}
@@ -435,7 +435,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                 accept="image/*"
                 capture="environment"
                 className="hidden"
-                onChange={(e) => addImages(e.target.files)}
+                onChange={(e) => { addImages(e.target.files); e.target.value = '' }}
               />
             </div>
           </div>
