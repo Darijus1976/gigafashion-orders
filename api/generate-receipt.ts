@@ -124,10 +124,15 @@ async function generatePdfBuffer(html: string): Promise<Buffer> {
 
 function buildReceiptHtml(order: any, payment: any): string {
   const paymentDate = payment.payment_date
-    ? new Date(payment.payment_date).toLocaleDateString('lt-LT')
-    : new Date().toLocaleDateString('lt-LT');
+    ? new Date(payment.payment_date).toLocaleDateString('en-IE')
+    : new Date().toLocaleDateString('en-IE');
   const amount = Number(payment.amount || 0).toFixed(2);
-  const generatedAt = new Date().toLocaleString('lt-LT');
+  const generatedAt = new Date().toLocaleString('en-IE');
+  const orderTotal = Number(order.total_amount || 0);
+  const paidBefore = Number(order.total_paid || 0);
+  const thisPayment = Number(payment.amount || 0);
+  const totalPaidAfter = paidBefore + thisPayment;
+  const balanceAfter = orderTotal - totalPaidAfter;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
@@ -187,15 +192,15 @@ function buildReceiptHtml(order: any, payment: any): string {
 <div class="section">
   <div class="row">
     <span class="label">Order total:</span>
-    <span class="value">€${Number(order.total_amount || 0).toFixed(2)}</span>
+    <span class="value">€${orderTotal.toFixed(2)}</span>
   </div>
   <div class="row">
-    <span class="label">Total paid:</span>
-    <span class="value">€${Number(order.total_paid || 0).toFixed(2)}</span>
+    <span class="label">Total paid (incl. this payment):</span>
+    <span class="value">€${totalPaidAfter.toFixed(2)}</span>
   </div>
   <div class="row">
     <span class="label">Balance due:</span>
-    <span class="value">€${(Number(order.total_amount || 0) - Number(order.total_paid || 0)).toFixed(2)}</span>
+    <span class="value" style="color:${balanceAfter <= 0 ? '#16a34a' : '#dc2626'}">€${balanceAfter.toFixed(2)}</span>
   </div>
 </div>
 
