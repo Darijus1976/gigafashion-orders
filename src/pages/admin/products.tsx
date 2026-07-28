@@ -230,7 +230,7 @@ export default function AdminProductsPage() {
       className="overflow-hidden cursor-pointer transition-shadow hover:shadow-md"
       onClick={() => openProduct(product)}
     >
-      <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
+      <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center">
         {product.image_url ? (
           <img
             src={product.image_url}

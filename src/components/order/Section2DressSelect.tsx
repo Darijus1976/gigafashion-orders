@@ -56,10 +56,8 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
   const [selectedMode, setSelectedMode] = useState<DressSelectionMode | null>(null)
   const [customDescription, setCustomDescription] = useState('')
   const [customPrice, setCustomPrice] = useState('')
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
-  const [catalogueNotes, setCatalogueNotes] = useState('')
   const [customImageFiles, setCustomImageFiles] = useState<File[]>([])
   const [customImagePreviews, setCustomImagePreviews] = useState<string[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -103,25 +101,15 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
     : products
 
   const handleCatalogueSelect = (product: Product) => {
-    setSelectedProduct(product)
-  }
-
-  const handleAddCatalogueDress = () => {
-    if (selectedProduct) {
-      const desc = catalogueNotes.trim()
-        ? `${selectedProduct.name} (${catalogueNotes.trim()})`
-        : selectedProduct.name
-      onAddToOrder({
-        id: crypto.randomUUID(),
-        type: 'catalogue',
-        description: desc,
-        price: selectedProduct.price,
-        productId: selectedProduct.id,
-        imageUrl: selectedProduct.image_url || undefined,
-      })
-      setSelectedProduct(null)
-      setCatalogueNotes('')
-    }
+    onAddToOrder({
+      id: crypto.randomUUID(),
+      type: 'catalogue',
+      description: product.name,
+      price: product.price,
+      productId: product.id,
+      imageUrl: product.image_url || undefined,
+    })
+    setSelectedMode(null)
   }
 
   const handleAddCustomDress = () => {
@@ -276,8 +264,6 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           size="sm"
           onClick={() => {
             setSelectedMode(null)
-            setSelectedProduct(null)
-            setCatalogueNotes('')
             setCustomDescription('')
             setCustomPrice('')
             setCustomImageFiles([])
@@ -303,7 +289,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
               {filteredProducts.map((product) => (
                 <Card 
                   key={product.id}
-                  className={`cursor-pointer transition-all ${selectedProduct?.id === product.id ? 'border-rose-600 ring-2 ring-rose-200' : 'hover:border-rose-300'}`}
+                  className="cursor-pointer transition-all hover:border-rose-300"
                   onClick={() => handleCatalogueSelect(product)}
                 >
                   <CardContent className="p-4">
@@ -322,23 +308,6 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
             </div>
           )}
 
-    {selectedProduct && (
-  <div className="space-y-3">
-    <Textarea
-      placeholder="Pastabos: pvz. tokia pati tik trumpesnė..."
-      value={catalogueNotes}
-      onChange={(e) => setCatalogueNotes(e.target.value)}
-      rows={2}
-    />
-    <Button 
-      className="w-full"
-      onClick={handleAddCatalogueDress}
-    >
-      <Plus className="w-4 h-4 mr-2" />
-      Add to order: {selectedProduct.name} (€{selectedProduct.price.toFixed(2)})
-    </Button>
-  </div>
-)}      
         </div>
       )}
 

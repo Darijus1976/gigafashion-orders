@@ -332,7 +332,7 @@ export function ProductForm({
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg overflow-hidden">
-              <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
+              <div className="aspect-[3/4] bg-gray-100 flex items-center justify-center">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
