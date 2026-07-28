@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Check } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 
 export interface AlterationRow {
   id: string
@@ -27,7 +27,6 @@ export const MIN_ALTERATION_ROWS = 5
 export const MAX_ALTERATION_ROWS = 10
 
 export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, setRows }: Section3AlterationsProps) {
-  const confirmedCount = rows.filter(r => r.isConfirmed).length
   const canAddMore = rows.length < MAX_ALTERATION_ROWS
   const canRemove = rows.length > MIN_ALTERATION_ROWS
 
@@ -98,11 +97,7 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
         {rows.map((row, index) => (
           <div
             key={row.id}
-            className={`grid grid-cols-12 gap-2 items-start p-3 rounded-lg border ${
-              row.isConfirmed
-                ? 'border-green-300 bg-green-50'
-                : 'border-gray-200'
-            }`}
+            className="grid grid-cols-12 gap-2 items-start p-3 rounded-lg border border-gray-200"
           >
             {/* Row Number */}
             <div className="col-span-1 flex items-center justify-center">
@@ -123,9 +118,8 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
                 placeholder="e.g. Longer sleeves, additional embroidered strip..."
                 value={row.description}
                 onChange={(e) => updateRow(row.id, 'description', e.target.value)}
+                onBlur={() => confirmRow(row.id)}
                 onKeyDown={(e) => handleKeyDown(e, row.id)}
-                disabled={row.isConfirmed}
-                className={row.isConfirmed ? 'bg-white' : ''}
               />
             </div>
 
@@ -144,29 +138,13 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
                 placeholder="0.00"
                 value={row.price}
                 onChange={(e) => updateRow(row.id, 'price', e.target.value)}
+                onBlur={() => confirmRow(row.id)}
                 onKeyDown={(e) => handleKeyDown(e, row.id)}
-                disabled={row.isConfirmed}
-                className={row.isConfirmed ? 'bg-white' : ''}
               />
             </div>
 
             {/* Actions */}
             <div className="col-span-2 flex items-center justify-end gap-1">
-              {!row.isConfirmed ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => confirmRow(row.id)}
-                  disabled={!row.description.trim()}
-                  className="text-green-600 hover:text-green-700 hover:bg-green-100"
-                >
-                  <Check className="w-4 h-4" />
-                </Button>
-              ) : (
-                <span className="text-xs text-green-600 font-medium">Pridėta</span>
-              )}
-              
               {(canRemove || row.description || row.price || row.isConfirmed) && (
                 <Button
                   type="button"
@@ -200,13 +178,13 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
         </Button>
 
         <p className="text-sm text-muted-foreground">
-          Rows: {rows.length} | Confirmed: {confirmedCount}
+          Rows: {rows.length}
         </p>
       </div>
 
       {/* Instructions */}
       <p className="text-xs text-muted-foreground">
-        * Press Enter or ✓ button to add alteration to order
+        * Alteration is added automatically when you finish typing
       </p>
     </div>
   )
