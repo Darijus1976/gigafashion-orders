@@ -56,7 +56,10 @@ export function OrderFormFooter({
   }
 
   return (
-    <div className="relative sm:fixed sm:bottom-0 sm:left-0 sm:right-0 bg-white border-t border-gray-200 p-4 shadow-lg sm:z-50">
+    <div
+      className="relative sm:fixed sm:bottom-0 sm:left-0 sm:right-0 bg-white border-t border-gray-200 p-4 shadow-lg sm:z-50"
+      style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+    >
       <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Left side - Staff and Date */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">

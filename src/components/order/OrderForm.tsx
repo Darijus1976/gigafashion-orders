@@ -516,7 +516,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   }
 
   return (
-    <div className="space-y-4 pb-32">
+    <div className="space-y-4" style={{ paddingBottom: 'calc(10rem + env(safe-area-inset-bottom))' }}>
       {loadError && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           Failed to load saved order: {loadError}
