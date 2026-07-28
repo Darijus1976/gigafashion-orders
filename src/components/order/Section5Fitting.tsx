@@ -245,7 +245,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
                 {/* Description Input */}
                 <div className="col-span-6">
                   <Input
-                    placeholder="Pvz.: Siaurinta juosmuo, sutrumpinta suknelė..."
+                    placeholder="e.g. Narrowed waist, shortened dress..."
                     value={note.description}
                     onChange={(e) =>
                       updateNote(activeSession.id, note.id, 'description', e.target.value)
@@ -285,7 +285,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
                       <Check className="w-4 h-4" />
                     </Button>
                   ) : (
-                    <span className="text-xs text-green-600 font-medium">Pridėta</span>
+                    <span className="text-xs text-green-600 font-medium">Added</span>
                   )}
                   
                   {(activeSession.notes.length > MIN_FITTING_NOTES || note.description || note.price || note.isConfirmed) && (

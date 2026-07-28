@@ -69,7 +69,7 @@ describe('Section2DressSelect', () => {
     
     fireEvent.click(screen.getByText(/our catalogue dress/i))
     
-    expect(screen.getByText(/komunija katalogas/i)).toBeInTheDocument()
+    expect(screen.getByText(/communion catalogue/i)).toBeInTheDocument()
   })
 
   it('should show custom dress form when custom card is clicked', () => {

@@ -121,7 +121,7 @@ export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
               <div className="mb-3">{category.icon}</div>
               <h3 className="font-semibold text-lg">{category.title}</h3>
               <p className="text-xs mt-1 opacity-75">
-                {isLoading ? 'Loading...' : `${getCategoryCount(category.type)} prekės`}
+                {isLoading ? 'Loading...' : `${getCategoryCount(category.type)} products`}
               </p>
             </CardContent>
           </Card>

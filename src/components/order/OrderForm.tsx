@@ -527,7 +527,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       <div className="flex items-center justify-between p-4 bg-rose-50 rounded-lg border border-rose-200">
         <div>
           <h1 className="text-3xl font-bold text-rose-700">Giga Fashion</h1>
-          <p className="text-muted-foreground">Kliento užsakymo forma</p>
+          <p className="text-muted-foreground">Client Order Form</p>
         </div>
         <div className="flex items-center gap-3">
           {!initialOrderNumber && (

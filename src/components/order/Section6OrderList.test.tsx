@@ -12,7 +12,7 @@ describe('Section6OrderList', () => {
   it('should display empty state when no items', () => {
     render(<Section6OrderList orderItems={[]} />)
     
-    expect(screen.getByText(/užsakymas tuščias/i)).toBeInTheDocument()
+    expect(screen.getByText(/order is empty/i)).toBeInTheDocument()
   })
 
   it('should display order items in table', () => {
@@ -33,7 +33,7 @@ describe('Section6OrderList', () => {
   it('should add payment row', () => {
     render(<Section6OrderList orderItems={mockOrderItems} />)
     
-    fireEvent.click(screen.getByText(/pridėti mokėjimą/i))
+    fireEvent.click(screen.getByText(/add payment/i))
     
     // Should have date input for payment
     expect(screen.getByText(/data/i)).toBeInTheDocument()
@@ -42,7 +42,7 @@ describe('Section6OrderList', () => {
   it('should update balance when payment is added', () => {
     render(<Section6OrderList orderItems={mockOrderItems} />)
     
-    fireEvent.click(screen.getByText(/pridėti mokėjimą/i))
+    fireEvent.click(screen.getByText(/add payment/i))
     
     const amountInputs = screen.getAllByPlaceholderText(/0\.00/i)
     fireEvent.change(amountInputs[0], { target: { value: '100' } })
@@ -54,29 +54,29 @@ describe('Section6OrderList', () => {
   it('should show paid status when fully paid', () => {
     render(<Section6OrderList orderItems={mockOrderItems} />)
     
-    fireEvent.click(screen.getByText(/pridėti mokėjimą/i))
+    fireEvent.click(screen.getByText(/add payment/i))
     
     const amountInputs = screen.getAllByPlaceholderText(/0\.00/i)
     fireEvent.change(amountInputs[0], { target: { value: '310' } })
     
     // Should show paid confirmation
-    expect(screen.getByText(/užsakymas pilnai apmokėtas/i)).toBeInTheDocument()
+    expect(screen.getByText(/order fully paid/i)).toBeInTheDocument()
   })
 
-  it('should display category labels in Lithuanian', () => {
+  it('should display category labels in English', () => {
     render(<Section6OrderList orderItems={mockOrderItems} />)
-    
-    expect(screen.getByText(/suknelė/i)).toBeInTheDocument()
-    expect(screen.getByText(/pataisymas/i)).toBeInTheDocument()
-    expect(screen.getByText(/priedas/i)).toBeInTheDocument()
+
+    expect(screen.getByText(/dress/i)).toBeInTheDocument()
+    expect(screen.getByText(/alteration/i)).toBeInTheDocument()
+    expect(screen.getByText(/extra/i)).toBeInTheDocument()
   })
 
   it('should allow payment method selection', () => {
     render(<Section6OrderList orderItems={mockOrderItems} />)
     
-    fireEvent.click(screen.getByText(/pridėti mokėjimą/i))
+    fireEvent.click(screen.getByText(/add payment/i))
     
-    const methodSelect = screen.getByText(/grynais/i)
+    const methodSelect = screen.getByText(/cash/i)
     expect(methodSelect).toBeInTheDocument()
   })
 })

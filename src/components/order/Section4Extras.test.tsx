@@ -3,19 +3,21 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { Section4Extras } from './Section4Extras'
 
 describe('Section4Extras', () => {
-  it('should render 4 category tiles in 2x2 grid', () => {
+  it('should render 6 category tiles in 3x2 grid', () => {
     render(<Section4Extras onAddToOrder={vi.fn()} />)
-    
-    expect(screen.getByText(/krepšiai/i)).toBeInTheDocument()
-    expect(screen.getByText(/veilės/i)).toBeInTheDocument()
-    expect(screen.getByText(/diržai/i)).toBeInTheDocument()
-    expect(screen.getByText(/galvajuostės/i)).toBeInTheDocument()
+
+    expect(screen.getByText(/bags/i)).toBeInTheDocument()
+    expect(screen.getByText(/veils/i)).toBeInTheDocument()
+    expect(screen.getByText(/belts/i)).toBeInTheDocument()
+    expect(screen.getByText(/headbands/i)).toBeInTheDocument()
+    expect(screen.getByText(/tiaras/i)).toBeInTheDocument()
+    expect(screen.getByText(/cuffs\/gloves/i)).toBeInTheDocument()
   })
 
   it('should open dialog when category tile is clicked', async () => {
     render(<Section4Extras onAddToOrder={vi.fn()} />)
     
-    fireEvent.click(screen.getByText(/krepšiai/i))
+    fireEvent.click(screen.getByText(/bags/i))
     
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -25,7 +27,7 @@ describe('Section4Extras', () => {
   it('should display products for selected category', async () => {
     render(<Section4Extras onAddToOrder={vi.fn()} />)
     
-    fireEvent.click(screen.getByText(/krepšiai/i))
+    fireEvent.click(screen.getByText(/bags/i))
     
     await waitFor(() => {
       expect(screen.getByText(/perlų rankinė/i)).toBeInTheDocument()
@@ -37,10 +39,10 @@ describe('Section4Extras', () => {
     const onAddToOrder = vi.fn()
     render(<Section4Extras onAddToOrder={onAddToOrder} />)
     
-    fireEvent.click(screen.getByText(/krepšiai/i))
+    fireEvent.click(screen.getByText(/bags/i))
     
     await waitFor(() => {
-      const addButtons = screen.getAllByText(/pridėti/i)
+      const addButtons = screen.getAllByText(/add/i)
       fireEvent.click(addButtons[0])
     })
     
@@ -56,10 +58,10 @@ describe('Section4Extras', () => {
     const onAddToOrder = vi.fn()
     render(<Section4Extras onAddToOrder={onAddToOrder} />)
     
-    fireEvent.click(screen.getByText(/krepšiai/i))
+    fireEvent.click(screen.getByText(/bags/i))
     
     await waitFor(() => {
-      const addButtons = screen.getAllByText(/pridėti/i)
+      const addButtons = screen.getAllByText(/add/i)
       fireEvent.click(addButtons[0])
     })
     
@@ -71,7 +73,7 @@ describe('Section4Extras', () => {
   it('should show product count on tiles', () => {
     render(<Section4Extras onAddToOrder={vi.fn()} />)
     
-    const tiles = screen.getAllByText(/prekės/i)
-    expect(tiles.length).toBe(4)
+    const tiles = screen.getAllByText(/products/i)
+    expect(tiles.length).toBe(6)
   })
 })

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ShoppingBag, PenTool, Plus, ImageIcon, X, Camera } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { occasionLabels } from '@/lib/utils/validation'
 import type { Database } from '@/lib/supabase/types'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -40,16 +41,6 @@ interface Section2DressSelectProps {
   onAddToOrder: (item: DressSelectionItem) => void
   orderItems?: OrderItem[]
   onRemoveItem?: (id: string) => void
-}
-
-const occasionLabels: Record<Occasion, string> = {
-  christening: 'Krikstynos',
-  communion: 'Komunija',
-  confirmation: 'Sutvirtinimas',
-  debs: 'Debs',
-  wedding: 'Vestuves',
-  wedding_alteration: 'Vestuviu taisymas',
-  other: 'Kita',
 }
 
 export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], onRemoveItem }: Section2DressSelectProps) {
@@ -189,7 +180,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
     <div className="space-y-4">
       {dressItems.length > 0 && (
         <div className="space-y-2">
-          <Label>Pridetos sukneles:</Label>
+          <Label>Added dresses:</Label>
           <div className="space-y-2">
             {dressItems.map((item) => {
               // Parse imageUrl — could be a JSON array string or a single URL
@@ -277,13 +268,13 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
       {selectedMode === 'catalogue' && (
         <div className="space-y-4">
           <h3 className="font-medium">
-            {occasion ? `${occasionLabels[occasion]} katalogas` : 'Visi katalogai'}
+            {occasion ? `${occasionLabels[occasion]} catalogue` : 'All catalogues'}
           </h3>
-          
+
           {isLoadingProducts ? (
-            <p className="text-muted-foreground">Kraunamos sukneles...</p>
+            <p className="text-muted-foreground">Loading dresses...</p>
           ) : filteredProducts.length === 0 ? (
-            <p className="text-muted-foreground">Šioje kategorijoje nėra sukneliu</p>
+            <p className="text-muted-foreground">No dresses in this category</p>
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {filteredProducts.map((product) => (
@@ -344,7 +335,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           </div>
 
           <div className="space-y-2">
-            <Label>Referencines nuotraukos</Label>
+            <Label>Reference photos</Label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
               {customImagePreviews.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -374,7 +365,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                   onClick={() => customGalleryInputRef.current?.click()}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Galerija
+                  Gallery
                 </Button>
                 <Button
                   type="button"
@@ -384,11 +375,11 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                   onClick={() => customCameraInputRef.current?.click()}
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Kamera
+                  Camera
                 </Button>
               </div>
               <p className="text-xs text-center text-muted-foreground mt-2">
-                {uploadingImages ? 'Įkeliama...' : 'Pasirinkite galeriją arba fotografuokite'}
+                {uploadingImages ? 'Uploading...' : 'Choose from gallery or take a photo'}
               </p>
               <input
                 ref={customGalleryInputRef}

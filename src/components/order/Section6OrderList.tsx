@@ -238,7 +238,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                 ))}
                 <TableRow className="border-t-2 border-gray-200">
                   <TableCell colSpan={4} className="text-right font-bold text-lg">
-                    Viso:
+                    Total:
                   </TableCell>
                   <TableCell className="text-right font-bold text-lg text-rose-600">
                     {formatCurrency(totalAmount)}

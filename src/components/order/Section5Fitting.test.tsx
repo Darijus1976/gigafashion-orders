@@ -6,14 +6,14 @@ describe('Section5Fitting', () => {
   it('should render with initial fitting session', () => {
     render(<Section5Fitting onAddToOrder={vi.fn()} />)
     
-    expect(screen.getByText(/matymo data/i)).toBeInTheDocument()
-    expect(screen.getByText(/matymo pastabos/i)).toBeInTheDocument()
+    expect(screen.getByText(/fitting date/i)).toBeInTheDocument()
+    expect(screen.getByText(/fitting notes and alterations/i)).toBeInTheDocument()
   })
 
   it('should have 3 initial note rows', () => {
     render(<Section5Fitting onAddToOrder={vi.fn()} />)
     
-    const notes = screen.getAllByPlaceholderText(/pvz.: siaurinta juosmuo/i)
+    const notes = screen.getAllByPlaceholderText(/e.g. narrowed waist/i)
     expect(notes).toHaveLength(3)
   })
 
@@ -21,7 +21,7 @@ describe('Section5Fitting', () => {
     const onAddToOrder = vi.fn()
     render(<Section5Fitting onAddToOrder={onAddToOrder} />)
     
-    const descriptionInputs = screen.getAllByPlaceholderText(/pvz.: siaurinta juosmuo/i)
+    const descriptionInputs = screen.getAllByPlaceholderText(/e.g. narrowed waist/i)
     const priceInputs = screen.getAllByPlaceholderText(/0\.00/i)
     
     fireEvent.change(descriptionInputs[0], {
@@ -45,7 +45,7 @@ describe('Section5Fitting', () => {
   it('should add new fitting session', async () => {
     render(<Section5Fitting onAddToOrder={vi.fn()} />)
     
-    fireEvent.click(screen.getByText(/naujas matymas/i))
+    fireEvent.click(screen.getByText(/new fitting/i))
     
     await waitFor(() => {
       const sessionTabs = screen.getAllByRole('button')
@@ -56,7 +56,7 @@ describe('Section5Fitting', () => {
   it('should allow adding notes up to 8', () => {
     render(<Section5Fitting onAddToOrder={vi.fn()} />)
     
-    const addButton = screen.getByText(/pridėti pastabą/i)
+    const addButton = screen.getByText(/add note/i)
     
     // Add 5 more notes (already has 3)
     for (let i = 0; i < 5; i++) {
@@ -69,7 +69,7 @@ describe('Section5Fitting', () => {
   it('should switch between sessions', async () => {
     render(<Section5Fitting onAddToOrder={vi.fn()} />)
     
-    fireEvent.click(screen.getByText(/naujas matymas/i))
+    fireEvent.click(screen.getByText(/new fitting/i))
     
     await waitFor(() => {
       const tabs = screen.getAllByRole('button')
