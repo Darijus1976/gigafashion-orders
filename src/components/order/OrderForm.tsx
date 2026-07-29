@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Section1ClientInfo } from './Section1ClientInfo'
 import { Section2DressSelect } from './Section2DressSelect'
 import { MIN_ALTERATION_ROWS, Section3Alterations, type AlterationRow } from './Section3Alterations'
@@ -141,6 +141,54 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         .catch(console.error)
     }
   }, [orderNumber, initialOrderNumber])
+
+  // Warn before leaving/refreshing the page when form has data
+  const justSavedRef = useRef(false)
+  const isDirty = useMemo(() => {
+    return Boolean(
+      clientInfoData.clientName?.trim() ||
+      clientInfoData.phone?.trim() ||
+      selectedOccasion ||
+      orderItems.some(item => !item.deleted && (item.price || item.description)) ||
+      payments.some(p => p.amount.trim())
+    )
+  }, [clientInfoData, selectedOccasion, orderItems, payments])
+
+  useEffect(() => {
+    if (!isDirty || justSavedRef.current) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (justSavedRef.current) return
+      e.preventDefault()
+      e.returnValue = ''
+    }
+
+    window.history.pushState({ orderForm: true }, '')
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (justSavedRef.current) return
+
+      const confirmed = window.confirm(
+        'You have unsaved changes. Do you really want to close this form?'
+      )
+
+      if (confirmed) {
+        window.removeEventListener('beforeunload', handleBeforeUnload)
+        window.removeEventListener('popstate', handlePopState)
+        window.history.back()
+      } else {
+        window.history.pushState({ orderForm: true }, '')
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [isDirty])
 
   useEffect(() => {
     if (initialOrderNumber) return
@@ -393,7 +441,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       if (initialOrderNumber) {
         if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
         alert(`Order saved: ${result.orderNumber}`)
-        if (!noRedirect) window.location.href = '/admin'
+        if (!noRedirect) {
+          justSavedRef.current = true
+          window.location.href = '/admin'
+        }
         return
       }
 
@@ -413,6 +464,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
       if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
       alert(`Order saved: ${result.orderNumber}`)
+      justSavedRef.current = true
       window.location.href = '/admin'
     } catch (error) {
       setIsSaving(false)
