@@ -1,5 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { Canvas, PencilBrush, FabricObject } from 'fabric'
+import * as fabricModule from 'fabric'
+// @types/fabric uses a UMD/global namespace that is incompatible with ES namespace imports;
+// the runtime value is the actual fabric object, so we cast it for use in this file.
+const fabric = fabricModule as any
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,7 +22,7 @@ export function AnnotationCanvas({
   isLoading = false,
 }: AnnotationCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fabricCanvasRef = useRef<Canvas | null>(null)
+  const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isReady, setIsReady] = useState(false)
   const [zoom, setZoom] = useState(1)
@@ -41,7 +44,7 @@ export function AnnotationCanvas({
     if (!canvasRef.current || !containerRef.current) return
 
     // Create fabric canvas
-    const canvas = new Canvas(canvasRef.current, {
+    const canvas = new fabric.Canvas(canvasRef.current, {
       isDrawingMode: true,
       selection: false,
       allowTouchScrolling: false,
@@ -50,7 +53,7 @@ export function AnnotationCanvas({
     fabricCanvasRef.current = canvas
 
     // Setup pencil brush
-    const brush = new PencilBrush(canvas)
+    const brush = new fabric.PencilBrush(canvas)
     brush.color = brushColor
     brush.width = brushSize
     brush.strokeLineCap = 'round'
@@ -61,7 +64,7 @@ export function AnnotationCanvas({
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => {
-      const fabricImg = new FabricObject(img, {
+      const fabricImg = new fabric.Image(img, {
         selectable: false,
         evented: false,
         scaleX: canvas.width! / img.width,
@@ -170,16 +173,17 @@ export function AnnotationCanvas({
   }, [])
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
+    const touches = e.nativeEvent.touches
+    if (touches.length === 2) {
       // Pinch start
       e.preventDefault()
       setIsPinching(true)
-      const distance = getDistance(e.touches[0], e.touches[1])
+      const distance = getDistance(touches[0], touches[1])
       setInitialPinchDistance(distance)
       setInitialZoom(zoom)
-    } else if (e.touches.length === 1 && zoom > 1) {
+    } else if (touches.length === 1 && zoom > 1) {
       // Pan start
-      const touch = e.touches[0]
+      const touch = touches[0]
       setIsPanning(true)
       setLastPanPoint({ x: touch.clientX, y: touch.clientY })
     }
@@ -188,19 +192,20 @@ export function AnnotationCanvas({
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!fabricCanvasRef.current) return
 
-    if (e.touches.length === 2 && isPinching) {
+    const touches = e.nativeEvent.touches
+    if (touches.length === 2 && isPinching) {
       // Pinch zoom
       e.preventDefault()
-      const distance = getDistance(e.touches[0], e.touches[1])
+      const distance = getDistance(touches[0], touches[1])
       const scale = distance / initialPinchDistance
       const newZoom = Math.min(Math.max(initialZoom * scale, 0.5), 3)
       setZoom(newZoom)
       fabricCanvasRef.current.setZoom(newZoom)
       fabricCanvasRef.current.renderAll()
-    } else if (e.touches.length === 1 && isPanning && zoom > 1) {
+    } else if (touches.length === 1 && isPanning && zoom > 1) {
       // Pan
       e.preventDefault()
-      const touch = e.touches[0]
+      const touch = touches[0]
       const deltaX = touch.clientX - lastPanPoint.x
       const deltaY = touch.clientY - lastPanPoint.y
       
@@ -309,12 +314,12 @@ export function AnnotationCanvas({
 
   // Preset colors
   const colors = [
-    { name: 'Raudona', value: '#ef4444' },
-    { name: 'Mėlyna', value: '#3b82f6' },
-    { name: 'Žalia', value: '#22c55e' },
-    { name: 'Geltona', value: '#eab308' },
-    { name: 'Juoda', value: '#000000' },
-    { name: 'Balta', value: '#ffffff' },
+    { name: 'Red', value: '#ef4444' },
+    { name: 'Blue', value: '#3b82f6' },
+    { name: 'Green', value: '#22c55e' },
+    { name: 'Yellow', value: '#eab308' },
+    { name: 'Black', value: '#000000' },
+    { name: 'White', value: '#ffffff' },
   ]
 
   return (
@@ -322,16 +327,16 @@ export function AnnotationCanvas({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <PenTool className="w-5 h-5" />
-          Piešimas ant nuotraukos
+          Draw on photo
           {isDrawing && pressure > 0 && (
             <Badge variant="secondary" className="ml-2">
-              Slėgis: {Math.round(pressure * 100)}%
+              Pressure: {Math.round(pressure * 100)}%
             </Badge>
           )}
         </CardTitle>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            Priartinimas: {Math.round(zoom * 100)}%
+            Zoom: {Math.round(zoom * 100)}%
           </span>
           <Button
             type="button"
@@ -358,7 +363,7 @@ export function AnnotationCanvas({
         <div className="flex flex-wrap items-center gap-4 p-3 bg-gray-50 rounded-lg">
           {/* Brush Size */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Dydis:</span>
+            <span className="text-sm font-medium">Size:</span>
             <input
               type="range"
               min="1"
@@ -372,7 +377,7 @@ export function AnnotationCanvas({
 
           {/* Brush Color */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Spalva:</span>
+            <span className="text-sm font-medium">Color:</span>
             <div className="flex gap-1">
               {colors.map((color) => (
                 <button
@@ -397,7 +402,7 @@ export function AnnotationCanvas({
               onClick={handleClear}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Išvalyti
+              Clear
             </Button>
           </div>
         </div>
@@ -419,7 +424,7 @@ export function AnnotationCanvas({
           {!isReady && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
-              <span className="ml-2 text-muted-foreground">Kraunama...</span>
+              <span className="ml-2 text-muted-foreground">Loading...</span>
             </div>
           )}
           <canvas
@@ -441,11 +446,11 @@ export function AnnotationCanvas({
 
         {/* Info */}
         <p className="text-sm text-muted-foreground">
-          Naudokite S-Pen arba pelę piešimui. Palaikomas slėgio jautrumas su S-Pen.
+          Use S-Pen or mouse to draw. Pressure sensitivity is supported with S-Pen.
           <br />
           <span className="text-xs">
-            <strong>Pinch-to-zoom:</strong> du pirštais priartinkite/nutolinkite. 
-            <strong>Pan:</strong> tempkite su vienu pirštu kai priartinta (arba Shift+pelė).
+            <strong>Pinch-to-zoom:</strong> use two fingers to zoom in/out.
+            <strong>Pan:</strong> drag with one finger when zoomed (or Shift+mouse).
           </span>
         </p>
 
@@ -457,7 +462,7 @@ export function AnnotationCanvas({
             onClick={onCancel}
             disabled={isLoading}
           >
-            Atšaukti
+            Cancel
           </Button>
           <Button
             type="button"
@@ -467,12 +472,12 @@ export function AnnotationCanvas({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saugojama...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Išsaugoti
+                Save
               </>
             )}
           </Button>

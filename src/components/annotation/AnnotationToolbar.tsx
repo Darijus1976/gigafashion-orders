@@ -20,13 +20,13 @@ interface AnnotationToolbarProps {
 }
 
 const COLORS = [
-  { value: '#000000', label: 'Juoda' },
-  { value: '#ef4444', label: 'Raudona' },
-  { value: '#3b82f6', label: 'Mėlyna' },
-  { value: '#22c55e', label: 'Žalia' },
-  { value: '#eab308', label: 'Geltona' },
-  { value: '#a855f7', label: 'Violetinė' },
-  { value: '#ffffff', label: 'Balta' },
+  { value: '#000000', label: 'Black' },
+  { value: '#ef4444', label: 'Red' },
+  { value: '#3b82f6', label: 'Blue' },
+  { value: '#22c55e', label: 'Green' },
+  { value: '#eab308', label: 'Yellow' },
+  { value: '#a855f7', label: 'Purple' },
+  { value: '#ffffff', label: 'White' },
 ]
 
 export function AnnotationToolbar({
@@ -46,7 +46,7 @@ export function AnnotationToolbar({
     <div className="flex flex-wrap items-center gap-4 p-3 bg-gray-50 rounded-lg">
       {/* Tools */}
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Įrankis:</span>
+        <span className="text-sm font-medium">Tool:</span>
         <div className="flex border rounded-md overflow-hidden">
           <Button
             type="button"
@@ -56,7 +56,7 @@ export function AnnotationToolbar({
             className="rounded-none"
           >
             <Pencil className="w-4 h-4 mr-1" />
-            Pieštukas
+            Pencil
           </Button>
           <Button
             type="button"
@@ -66,14 +66,14 @@ export function AnnotationToolbar({
             className="rounded-none"
           >
             <Eraser className="w-4 h-4 mr-1" />
-            Trintukas
+            Eraser
           </Button>
         </div>
       </div>
 
       {/* Color Picker */}
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Spalva:</span>
+        <span className="text-sm font-medium">Color:</span>
         <div className="flex gap-1">
           {COLORS.map((color) => (
             <button
@@ -94,7 +94,7 @@ export function AnnotationToolbar({
 
       {/* Brush Size */}
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium">Storis:</span>
+        <span className="text-sm font-medium">Thickness:</span>
         <div className="flex items-center gap-2">
           <Button
             type="button"
@@ -136,7 +136,7 @@ export function AnnotationToolbar({
           disabled={!canUndo}
         >
           <Undo2 className="w-4 h-4 mr-1" />
-          Atšaukti
+          Undo
         </Button>
         <Button
           type="button"
@@ -146,7 +146,7 @@ export function AnnotationToolbar({
           disabled={!canRedo}
         >
           <Redo2 className="w-4 h-4 mr-1" />
-          Grąžinti
+          Redo
         </Button>
         <Button
           type="button"
@@ -156,7 +156,7 @@ export function AnnotationToolbar({
           className="text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           <Trash2 className="w-4 h-4 mr-1" />
-          Išvalyti
+          Clear
         </Button>
       </div>
     </div>

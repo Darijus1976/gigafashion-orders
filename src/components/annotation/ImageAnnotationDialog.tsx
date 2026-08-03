@@ -51,7 +51,7 @@ export function ImageAnnotationDialog({
       onClose()
     } catch (error) {
       console.error('Error saving annotation:', error)
-      alert('Klaida išsaugant anotaciją. Bandykite dar kartą.')
+      alert('Error saving annotation. Please try again.')
     } finally {
       setIsSaving(false)
     }
@@ -61,7 +61,7 @@ export function ImageAnnotationDialog({
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Anotuoti nuotrauką</DialogTitle>
+          <DialogTitle>Annotate photo</DialogTitle>
         </DialogHeader>
         <AnnotationCanvas
           imageUrl={imageUrl}

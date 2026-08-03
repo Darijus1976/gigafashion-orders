@@ -121,14 +121,14 @@ export function ImageUploader({
         return false
       }
       if (file.size > maxSizeBytes) {
-        alert(`Failas "${file.name}" per didelis (max ${maxSizeMB}MB)`)
+        alert(`File "${file.name}" is too large (max ${maxSizeMB}MB)`)
         return false
       }
       return true
     })
 
     if (files.length + imageFiles.length > maxFiles) {
-      alert(`Max ${maxFiles} nuotraukų vienu metu`)
+      alert(`Max ${maxFiles} photos at once`)
       return
     }
 
@@ -192,7 +192,7 @@ export function ImageUploader({
         }
       } catch (error) {
         console.error('Upload error:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Įkėlimo klaida'
+        const errorMessage = error instanceof Error ? error.message : 'Upload error'
         setFiles((prev) =>
           prev.map((f) =>
             f.id === uploadFile.id
@@ -294,7 +294,7 @@ export function ImageUploader({
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Camera className="w-5 h-5" />
-            Nuotraukų įkėlimas
+            Photo upload
           </span>
           {files.length > 0 && (
             <Badge variant="secondary">
@@ -319,9 +319,9 @@ export function ImageUploader({
             <div className="flex flex-col items-center text-muted-foreground">
               <ImageIcon className="w-12 h-12 mb-4" />
               <p className="text-lg font-medium mb-2">
-                Tempkite nuotraukas čia
+                Drop photos here
               </p>
-              <p className="text-sm mb-4">arba</p>
+              <p className="text-sm mb-4">or</p>
               
               <div className="flex gap-2">
                 <Button
@@ -330,7 +330,7 @@ export function ImageUploader({
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Gallerija
+                  Gallery
                 </Button>
                 <Button
                   type="button"
@@ -338,12 +338,12 @@ export function ImageUploader({
                   onClick={() => cameraInputRef.current?.click()}
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Kamera
+                  Camera
                 </Button>
               </div>
               
               <p className="text-xs text-gray-400 mt-4">
-                WebP, JPG, PNG (max {maxSizeMB}MB, max {maxFiles} nuotraukų)
+                WebP, JPG, PNG (max {maxSizeMB}MB, max {maxFiles} photos)
               </p>
             </div>
           </div>
@@ -354,25 +354,25 @@ export function ImageUploader({
               {pendingCount > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <AlertCircle className="w-3 h-3" />
-                  {pendingCount} laukia
+                  {pendingCount} pending
                 </Badge>
               )}
               {uploadingCount > 0 && (
                 <Badge variant="secondary" className="gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  {uploadingCount} apdorojama
+                  {uploadingCount} processing
                 </Badge>
               )}
               {successCount > 0 && (
                 <Badge variant="default" className="gap-1 bg-green-600">
                   <CheckCircle2 className="w-3 h-3" />
-                  {successCount} įkelta
+                  {successCount} uploaded
                 </Badge>
               )}
               {errorCount > 0 && (
                 <Badge variant="destructive" className="gap-1">
                   <AlertCircle className="w-3 h-3" />
-                  {errorCount} klaida
+                  {errorCount} error
                 </Badge>
               )}
             </div>
@@ -403,7 +403,7 @@ export function ImageUploader({
                     <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center p-4">
                       <Loader2 className="w-8 h-8 text-white animate-spin mb-2" />
                       <p className="text-white text-xs">
-                        {file.status === 'compressing' ? 'Kompresuojama...' : 'Įkeliama...'}
+                        {file.status === 'compressing' ? 'Compressing...' : 'Uploading...'}
                       </p>
                       <Progress value={file.progress} className="w-full h-2 mt-2" />
                     </div>
@@ -423,7 +423,7 @@ export function ImageUploader({
                         onClick={() => handleAnnotate(file)}
                       >
                         <Pencil className="w-4 h-4 mr-1" />
-                        Piešti
+                        Draw
                       </Button>
                     </>
                   )}
@@ -458,7 +458,7 @@ export function ImageUploader({
               <label className="cursor-pointer">
                 <div className="min-h-[120px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-gray-400 hover:bg-gray-50 transition-colors">
                   <Upload className="w-8 h-8 mb-2" />
-                  <span className="text-xs">Pridėti</span>
+                  <span className="text-xs">Add</span>
                 </div>
                 <input
                   type="file"
@@ -478,7 +478,7 @@ export function ImageUploader({
                 onClick={clearAll}
                 disabled={isProcessing}
               >
-                Išvalyti
+                Clear
               </Button>
               <div className="flex gap-2">
                 <Button
@@ -488,7 +488,7 @@ export function ImageUploader({
                   disabled={isProcessing || files.length >= maxFiles}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Gallerija
+                  Gallery
                 </Button>
                 <Button
                   type="button"
@@ -497,7 +497,7 @@ export function ImageUploader({
                   disabled={isProcessing || files.length >= maxFiles}
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Kamera
+                  Camera
                 </Button>
               </div>
             </div>
