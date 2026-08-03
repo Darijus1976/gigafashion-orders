@@ -129,9 +129,9 @@ function buildReceiptHtml(order: any, payment: any): string {
   const amount = Number(payment.amount || 0).toFixed(2);
   const generatedAt = new Date().toLocaleString('en-IE');
   const orderTotal = Number(order.total_amount || 0);
-  const paidBefore = Number(order.total_paid || 0);
-  const thisPayment = Number(payment.amount || 0);
-  const totalPaidAfter = paidBefore + thisPayment;
+  // order.total_paid already includes this payment (order is saved before a receipt
+  // can be generated, and total_paid is the sum of all payments at save time).
+  const totalPaidAfter = Number(order.total_paid || 0);
   const balanceAfter = orderTotal - totalPaidAfter;
 
   return `<!DOCTYPE html>
