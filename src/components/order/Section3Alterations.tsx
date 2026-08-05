@@ -101,7 +101,7 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
           >
             {/* Row Number */}
             <div className="col-span-1 flex items-center justify-center">
-              <span className="text-sm font-medium text-muted-foreground">
+              <span className="text-base font-semibold text-muted-foreground">
                 {index + 1}
               </span>
             </div>
@@ -109,7 +109,7 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
             {/* Description Input */}
             <div className="col-span-6 space-y-1">
               {index === 0 && (
-                <Label htmlFor={`desc-${row.id}`} className="text-xs">
+                <Label htmlFor={`desc-${row.id}`} className="text-sm font-semibold">
                   Alteration description
                 </Label>
               )}
@@ -126,7 +126,7 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
             {/* Price Input */}
             <div className="col-span-3 space-y-1">
               {index === 0 && (
-                <Label htmlFor={`price-${row.id}`} className="text-xs">
+                <Label htmlFor={`price-${row.id}`} className="text-sm font-semibold">
                   Price (€)
                 </Label>
               )}
@@ -173,17 +173,17 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
           <Plus className="w-4 h-4 mr-2" />
           Add row
           {rows.length >= MAX_ALTERATION_ROWS && (
-            <span className="ml-2 text-xs text-muted-foreground">(max {MAX_ALTERATION_ROWS})</span>
+            <span className="ml-2 text-sm text-muted-foreground">(max {MAX_ALTERATION_ROWS})</span>
           )}
         </Button>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base text-muted-foreground">
           Rows: {rows.length}
         </p>
       </div>
 
       {/* Instructions */}
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         * Alteration is added automatically when you finish typing
       </p>
     </div>

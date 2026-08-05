@@ -65,8 +65,8 @@ export function OrderFormFooter({
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           {/* Staff Member Select */}
           <div className="space-y-1 w-full sm:w-48">
-            <Label htmlFor="staff-member" className="text-xs flex items-center gap-1">
-              <User className="w-3 h-3" />
+            <Label htmlFor="staff-member" className="text-sm font-semibold flex items-center gap-1">
+              <User className="w-4 h-4" />
               Staff Member <span className="text-rose-600">*</span>
             </Label>
             <Select
@@ -88,8 +88,8 @@ export function OrderFormFooter({
 
           {/* Order Date (Read-only) */}
           <div className="space-y-1 w-full sm:w-40">
-            <Label htmlFor="order-date" className="text-xs flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+            <Label htmlFor="order-date" className="text-sm font-semibold flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
               Order Date
             </Label>
             <Input
@@ -106,8 +106,8 @@ export function OrderFormFooter({
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           {/* Total Amount Display */}
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">Total Order</p>
-            <p className="text-xl font-bold text-rose-600">
+            <p className="text-sm font-medium text-muted-foreground">Total Order</p>
+            <p className="text-2xl font-bold text-rose-600">
               {new Intl.NumberFormat('en-IE', {
                 style: 'currency',
                 currency: 'EUR',
@@ -116,7 +116,7 @@ export function OrderFormFooter({
           </div>
 
           {/* Skip PDF checkbox */}
-          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground cursor-pointer select-none">
             <input
               type="checkbox"
               checked={skipPdf}
@@ -141,7 +141,7 @@ export function OrderFormFooter({
 
       {/* Warning if not valid */}
       {!isValid && (
-        <p className="text-xs text-rose-600 text-center sm:text-left mt-2 sm:mt-0 max-w-4xl mx-auto">
+        <p className="text-sm text-rose-600 text-center sm:text-left mt-2 sm:mt-0 max-w-4xl mx-auto">
           * Select staff member to save order
         </p>
       )}

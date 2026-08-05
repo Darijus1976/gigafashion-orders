@@ -120,7 +120,7 @@ export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
             <CardContent className="p-6 flex flex-col items-center justify-center text-center">
               <div className="mb-3">{category.icon}</div>
               <h3 className="font-semibold text-lg">{category.title}</h3>
-              <p className="text-xs mt-1 opacity-75">
+              <p className="text-sm mt-1 opacity-75">
                 {isLoading ? 'Loading...' : `${getCategoryCount(category.type)} products`}
               </p>
             </CardContent>
@@ -172,7 +172,7 @@ export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
                     </div>
 
                     {/* Product Info */}
-                    <h4 className="font-medium text-sm mb-1">{product.name}</h4>
+                    <h4 className="font-semibold text-base mb-1">{product.name}</h4>
                     <p className="text-rose-600 font-semibold text-lg">
                       €{product.price.toFixed(2)}
                     </p>

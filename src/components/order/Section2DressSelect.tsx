@@ -206,8 +206,8 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-medium">{item.description}</p>
-                      <p className="text-sm text-rose-600">€{item.price.toFixed(2)}</p>
+                      <p className="text-base font-semibold">{item.description}</p>
+                      <p className="text-base text-rose-600 font-semibold">€{item.price.toFixed(2)}</p>
                     </div>
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => { if (onRemoveItem) onRemoveItem(item.id)}}>
@@ -229,7 +229,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
               <CardTitle className="text-lg">Our Catalogue Dress</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-base text-muted-foreground text-center">
                 Select from existing dresses in catalogue
               </p>
             </CardContent>
@@ -241,7 +241,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
               <CardTitle className="text-lg">Custom Dress</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-base text-muted-foreground text-center">
                 Create custom order
               </p>
             </CardContent>
@@ -291,7 +291,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                         <ImageIcon className="w-12 h-12 text-gray-400" />
                       )}
                     </div>
-                    <h4 className="font-medium text-sm">{product.name}</h4>
+                    <h4 className="font-semibold text-base">{product.name}</h4>
                     <p className="text-rose-600 font-semibold">€{product.price.toFixed(2)}</p>
                   </CardContent>
                 </Card>
@@ -304,10 +304,10 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
 
       {selectedMode === 'custom' && (
         <div className="space-y-4">
-          <h3 className="font-medium">Custom Dress</h3>
+          <h3 className="font-semibold text-lg">Custom Dress</h3>
           
           <div className="space-y-2">
-            <Label htmlFor="customDescription">
+            <Label htmlFor="customDescription" className="text-base font-semibold">
               Description <span className="text-rose-600">*</span>
             </Label>
             <Textarea
@@ -320,7 +320,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="customPrice">
+            <Label htmlFor="customPrice" className="text-base font-semibold">
               Price (€) <span className="text-rose-600">*</span>
             </Label>
             <Input
@@ -335,7 +335,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           </div>
 
           <div className="space-y-2">
-            <Label>Reference photos</Label>
+            <Label className="text-base font-semibold">Reference photos</Label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
               {customImagePreviews.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -378,7 +378,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
                   Camera
                 </Button>
               </div>
-              <p className="text-xs text-center text-muted-foreground mt-2">
+              <p className="text-sm text-center text-muted-foreground mt-2">
                 {uploadingImages ? 'Uploading...' : 'Choose from gallery or take a photo'}
               </p>
               <input

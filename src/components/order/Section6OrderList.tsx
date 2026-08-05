@@ -161,7 +161,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
           <div className="flex items-center gap-4">
             <User className="w-5 h-5 text-blue-600" />
             <div className="flex-1">
-              <Label className="text-sm">Staff Member (required for deletion)</Label>
+              <Label className="text-base font-semibold">Staff Member (required for deletion)</Label>
               <Select
                 value={staffMember}
                 onValueChange={(value) => setStaffMember(value)}
@@ -212,7 +212,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                     <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell>{item.description}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-gray-100">
                         {categoryLabels[item.type] || item.type}
                       </span>
                     </TableCell>
@@ -275,7 +275,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   <TableRow key={item.id} className="bg-gray-100">
                     <TableCell className="text-gray-500 line-through">{item.description}</TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-600">
                         {categoryLabels[item.type] || item.type}
                       </span>
                     </TableCell>
@@ -321,7 +321,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
 
                   {/* Date */}
                   <div className="w-32 space-y-1">
-                    <Label className="text-xs">Date</Label>
+                    <Label className="text-sm font-semibold">Date</Label>
                     <Input
                       type="date"
                       value={payment.date}
@@ -333,7 +333,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
 
                   {/* Amount */}
                   <div className="w-24 space-y-1">
-                    <Label className="text-xs">Amount (€)</Label>
+                    <Label className="text-sm font-semibold">Amount (€)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -348,7 +348,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
 
                   {/* Method */}
                   <div className="w-28 space-y-1">
-                    <Label className="text-xs">Method</Label>
+                    <Label className="text-sm font-semibold">Method</Label>
                     <Select
                       value={payment.method}
                       onValueChange={(value) =>
@@ -367,7 +367,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                   </div>
 
                   <div className="w-28 space-y-1">
-                    <Label className="text-xs">Accepted by *</Label>
+                    <Label className="text-sm font-semibold">Accepted by *</Label>
                     <Select
                       value={payment.acceptedBy}
                       onValueChange={(value) =>
@@ -389,7 +389,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
 
                   {/* Notes */}
                   <div className="flex-1 min-w-[120px] space-y-1">
-                    <Label className="text-xs">Payment notes</Label>
+                    <Label className="text-sm font-semibold">Payment notes</Label>
                     <Input
                       placeholder="e.g.: Advance, order confirmation..."
                       value={payment.notes}
@@ -451,19 +451,19 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
         <CardContent className="p-6">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Total order</p>
+              <p className="text-base font-semibold text-muted-foreground mb-1">Total order</p>
               <p className="text-2xl font-bold text-rose-600">
                 {formatCurrency(totalAmount)}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Paid</p>
+              <p className="text-base font-semibold text-muted-foreground mb-1">Paid</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(totalPaid)}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Balance</p>
+              <p className="text-base font-semibold text-muted-foreground mb-1">Balance</p>
               <p
                 className={`text-2xl font-bold ${
                   balanceRemaining > 0 ? 'text-rose-600' : 'text-green-600'

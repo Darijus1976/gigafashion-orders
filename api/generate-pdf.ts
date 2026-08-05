@@ -182,21 +182,22 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }
-  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
-  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }
-  th { background: #f5f5f5; font-weight: 600; }
-  .field { margin-bottom: 6px; }
-  .field-label { font-weight: 600; display: inline-block; width: 160px; }
-  .total-row td { font-weight: 700; border-top: 2px solid #333; }
+  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }
+  h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
+  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }
+  th { background: #f3f4f6; font-weight: bold; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }
+  .total-row td { font-weight: bold; border-top: 2px solid #333; background: #f9fafb; }
   .note { font-style: italic; color: #555; }
-  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
   .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .item-photos { margin-top: 6px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .item-photos { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
 </style></head><body>
 <h1>Order #${order.order_number} — Full Archive</h1>
 
@@ -286,19 +287,20 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }
-  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
-  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }
-  th { background: #f5f5f5; font-weight: 600; }
-  .field { margin-bottom: 6px; }
-  .field-label { font-weight: 600; display: inline-block; width: 160px; }
-  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }
+  h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
+  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }
+  th { background: #f3f4f6; font-weight: bold; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }
+  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
   .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .item-photos { margin-top: 6px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .item-photos { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
 </style></head><body>
 <h1>Order #${order.order_number} — Client Copy</h1>
 
@@ -355,17 +357,18 @@ function buildFittingPdfHtmlNoPrices(data: Awaited<ReturnType<typeof getOrderDat
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }
-  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }
-  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }
-  th { background: #f5f5f5; font-weight: 600; }
-  .field { margin-bottom: 6px; }
-  .field-label { font-weight: 600; display: inline-block; width: 160px; }
-  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }
+  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }
+  h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
+  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }
+  th { background: #f3f4f6; font-weight: bold; }
+  .field { margin-bottom: 10px; }
+  .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }
+  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
   .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }
+  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
 </style></head><body>
 <h1>Fitting Sheet — ${order.client_name}</h1>
 <div class="field"><span class="field-label">Order Number:</span> ${order.order_number}</div>
@@ -398,18 +401,19 @@ function buildFittingPdfHtmlWithPrices(data: Awaited<ReturnType<typeof getOrderD
 
   return '<!DOCTYPE html>' +
 '<html><head><meta charset="utf-8"><style>' +
-'  body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; margin: 40px; }' +
-'  h1 { font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 16px; }' +
-'  h2 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }' +
-'  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }' +
-'  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e0e0e0; }' +
-'  th { background: #f5f5f5; font-weight: 600; }' +
-'  .field { margin-bottom: 6px; }' +
-'  .field-label { font-weight: 600; display: inline-block; width: 160px; }' +
-'  .total-row td { font-weight: 700; border-top: 2px solid #333; }' +
-'  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 8px; }' +
+'  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }' +
+'  h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }' +
+'  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }' +
+'  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }' +
+'  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }' +
+'  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }' +
+'  th { background: #f3f4f6; font-weight: bold; }' +
+'  .field { margin-bottom: 10px; }' +
+'  .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }' +
+'  .total-row td { font-weight: bold; border-top: 2px solid #333; background: #f9fafb; }' +
+'  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }' +
 '  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }' +
-'  .footer { margin-top: 40px; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 8px; }' +
+'  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }' +
 '</style></head><body>' +
 '<h1>Fitting Sheet — ' + order.client_name + '</h1>' +
 '<div class="field"><span class="field-label">Order Number:</span> ' + order.order_number + '</div>' +

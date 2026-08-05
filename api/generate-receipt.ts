@@ -137,23 +137,23 @@ function buildReceiptHtml(order: any, payment: any): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
   * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 13px; color: #1a1a1a; margin: 0; padding: 20px; }
-  .header { text-align: center; border-bottom: 2px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 16px; }
-  .header h1 { font-size: 22px; margin: 0 0 4px 0; letter-spacing: 1px; }
-  .header p { margin: 2px 0; font-size: 12px; color: #555; }
-  .receipt-title { text-align: center; font-size: 16px; font-weight: bold; margin: 16px 0; text-transform: uppercase; letter-spacing: 2px; }
-  .receipt-number { text-align: center; font-size: 12px; color: #777; margin-bottom: 20px; }
-  .section { margin-bottom: 14px; }
-  .row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #ddd; }
+  body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #1a1a1a; margin: 0; padding: 24px; }
+  .header { text-align: center; border-bottom: 3px solid #1a1a1a; padding-bottom: 14px; margin-bottom: 20px; }
+  .header h1 { font-size: 28px; margin: 0 0 4px 0; letter-spacing: 1px; }
+  .header p { margin: 4px 0; font-size: 14px; color: #555; }
+  .receipt-title { text-align: center; font-size: 20px; font-weight: bold; margin: 20px 0; text-transform: uppercase; letter-spacing: 2px; }
+  .receipt-number { text-align: center; font-size: 14px; color: #777; margin-bottom: 24px; }
+  .section { margin-bottom: 18px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #d1d5db; }
   .row:last-child { border-bottom: none; }
-  .label { color: #555; }
-  .value { font-weight: 600; }
-  .amount-box { background: #f5f5f5; border: 2px solid #1a1a1a; border-radius: 4px; padding: 12px; text-align: center; margin: 20px 0; }
-  .amount-box .amount { font-size: 28px; font-weight: bold; }
-  .method-badge { display: inline-block; background: #1a1a1a; color: #fff; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-  .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 10px; }
-  .signature-line { border-top: 1px solid #aaa; width: 180px; margin: 30px auto 4px auto; }
-  .signature-label { text-align: center; font-size: 11px; color: #777; }
+  .label { color: #4b5563; font-weight: 600; }
+  .value { font-weight: 700; }
+  .amount-box { background: #f5f5f5; border: 2px solid #1a1a1a; border-radius: 6px; padding: 16px; text-align: center; margin: 24px 0; }
+  .amount-box .amount { font-size: 34px; font-weight: bold; }
+  .method-badge { display: inline-block; background: #1a1a1a; color: #fff; padding: 4px 14px; border-radius: 12px; font-size: 14px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+  .footer { margin-top: 36px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 12px; }
+  .signature-line { border-top: 1px solid #aaa; width: 200px; margin: 36px auto 6px auto; }
+  .signature-label { text-align: center; font-size: 13px; color: #777; }
 </style></head><body>
 
 <div class="header">

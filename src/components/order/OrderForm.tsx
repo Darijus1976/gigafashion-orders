@@ -568,7 +568,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   }
 
   return (
-    <div className="space-y-4" style={{ paddingBottom: 'calc(10rem + env(safe-area-inset-bottom))' }}>
+    <div className="space-y-6 p-2 text-lg" style={{ paddingBottom: 'calc(10rem + env(safe-area-inset-bottom))' }}>
       {loadError && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           Failed to load saved order: {loadError}
@@ -576,7 +576,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       )}
 
       {/* Order Number Header */}
-      <div className="flex items-center justify-between p-4 bg-rose-50 rounded-lg border border-rose-200">
+      <div className="flex items-center justify-between p-5 bg-rose-50 rounded-xl border border-rose-200 shadow-sm">
         <div>
           <h1 className="text-3xl font-bold text-rose-700">Giga Fashion</h1>
           <p className="text-muted-foreground">Client Order Form</p>
@@ -592,8 +592,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             </button>
           )}
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">Order Number</p>
-            <p className="text-lg font-bold text-rose-600">
+            <p className="text-sm text-muted-foreground font-medium">Order Number</p>
+            <p className="text-xl font-bold text-rose-600">
               {orderNumber || 'Generating...'}
             </p>
           </div>
@@ -601,16 +601,16 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 1 - Client Info */}
-      <div className="rounded-lg border border-gray-200">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(1)}
-          className="flex w-full items-center justify-between p-4 text-left font-medium"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
           <span>1. Client Information</span>
           <span>{isExpanded[1] ? '−' : '+'}</span>
         </button>
         <div 
-          className="border-t border-gray-200 p-4"
+          className="p-5"
           style={{ display: isExpanded[1] ? 'block' : 'none' }}
         >
           <Section1ClientInfo 
@@ -621,16 +621,16 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 2 - Dress Selection */}
-      <div className="rounded-lg border border-gray-200">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(2)}
-          className="flex w-full items-center justify-between p-4 text-left font-medium"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
           <span>2. Dress Selection</span>
           <span>{isExpanded[2] ? '−' : '+'}</span>
         </button>
         <div
-          className="border-t border-gray-200 p-4"
+          className="p-5"
           style={{ display: isExpanded[2] ? 'block' : 'none' }}
         >
           <Section2DressSelect 
@@ -643,16 +643,16 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 3 - Alterations */}
-      <div className="rounded-lg border border-gray-200">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(3)}
-          className="flex w-full items-center justify-between p-4 text-left font-medium"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
           <span>3. Alterations</span>
           <span>{isExpanded[3] ? '−' : '+'}</span>
         </button>
         <div
-          className="border-t border-gray-200 p-4"
+          className="p-5"
           style={{ display: isExpanded[3] ? 'block' : 'none' }}
         >
           <Section3Alterations
@@ -665,16 +665,16 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 4 - Extras */}
-      <div className="rounded-lg border border-gray-200">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(4)}
-          className="flex w-full items-center justify-between p-4 text-left font-medium"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
           <span>4. Extras</span>
           <span>{isExpanded[4] ? '−' : '+'}</span>
         </button>
         <div
-          className="border-t border-gray-200 p-4"
+          className="p-5"
           style={{ display: isExpanded[4] ? 'block' : 'none' }}
         >
           <Section4Extras onAddToOrder={handleAddExtraToOrder} />
@@ -682,16 +682,16 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 5 - Fitting */}
-      <div className="rounded-lg border border-gray-200">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(5)}
-          className="flex w-full items-center justify-between p-4 text-left font-medium"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
           <span>5. Fitting</span>
           <span>{isExpanded[5] ? '−' : '+'}</span>
         </button>
         <div
-          className="border-t border-gray-200 p-4"
+          className="p-5"
           style={{ display: isExpanded[5] ? 'block' : 'none' }}
         >
           <Section5Fitting
@@ -707,16 +707,16 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 6 - Order List */}
-      <div className="rounded-lg border border-gray-200">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(6)}
-          className="flex w-full items-center justify-between p-4 text-left font-medium"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
           <span>6. Order Summary</span>
           <span>{isExpanded[6] ? '−' : '+'}</span>
         </button>
         <div
-          className="border-t border-gray-200 p-4"
+          className="p-5"
           style={{ display: isExpanded[6] ? 'block' : 'none' }}
         >
           <Section6OrderList 

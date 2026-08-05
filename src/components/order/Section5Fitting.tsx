@@ -211,7 +211,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
         <CardContent className="space-y-4">
           {/* Date Input */}
           <div className="space-y-2">
-            <Label htmlFor="fitting-date">
+            <Label htmlFor="fitting-date" className="text-base font-semibold">
               Fitting date <span className="text-rose-600">*</span>
             </Label>
             <Input
@@ -224,7 +224,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
 
           {/* Fitting Notes */}
           <div className="space-y-3">
-            <Label>Fitting notes and alterations</Label>
+            <Label className="text-base font-semibold">Fitting notes and alterations</Label>
             
             {activeSession.notes.map((note, index) => (
               <div
@@ -237,7 +237,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
               >
                 {/* Note Number */}
                 <div className="col-span-1 flex items-center justify-center">
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="text-base font-semibold text-muted-foreground">
                     {index + 1}
                   </span>
                 </div>
@@ -285,7 +285,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
                       <Check className="w-4 h-4" />
                     </Button>
                   ) : (
-                    <span className="text-xs text-green-600 font-medium">Added</span>
+                    <span className="text-sm text-green-600 font-semibold">Added</span>
                   )}
                   
                   {(activeSession.notes.length > MIN_FITTING_NOTES || note.description || note.price || note.isConfirmed) && (
@@ -315,13 +315,13 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
             <Plus className="w-4 h-4 mr-2" />
             Add note
             {activeSession.notes.length >= MAX_FITTING_NOTES && (
-              <span className="ml-2 text-xs text-muted-foreground">(max {MAX_FITTING_NOTES})</span>
+              <span className="ml-2 text-sm text-muted-foreground">(max {MAX_FITTING_NOTES})</span>
             )}
           </Button>
 
           {/* Fitting Photos Upload */}
           <div className="space-y-2">
-            <Label>Fitting photos</Label>
+            <Label className="text-base font-semibold">Fitting photos</Label>
             {activeSession.photoUrls?.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeSession.photoUrls.map((url) => (
@@ -348,7 +348,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
               maxSizeMB={10}
               onUploadComplete={(urls) => addSessionPhotos(activeSession.id, urls)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Photos are optional, but uploaded photos will stay saved with this fitting.
             </p>
           </div>
@@ -366,7 +366,7 @@ export function Section5Fitting({ onAddToOrder, onRemoveFromOrder, orderId, sess
         New Fitting
       </Button>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         * Press Enter or ✓ button to add note to order
       </p>
 
