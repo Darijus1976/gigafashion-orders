@@ -198,9 +198,15 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
   .item-photos { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+  .section { page-break-inside: avoid; margin-bottom: 20px; }
+  h1, h2, h3 { page-break-after: avoid; }
+  table { page-break-inside: auto; }
+  tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }
+  thead { display: table-header-group; }
 </style></head><body>
 <h1>Order #${order.order_number} — Full Archive</h1>
 
+<div class="section">
 <h2>Client Information</h2>
 <div class="field"><span class="field-label">Client Name:</span> ${order.client_name}</div>
 <div class="field"><span class="field-label">Phone:</span> ${order.phone}</div>
@@ -211,7 +217,9 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
 <div class="field"><span class="field-label">Status:</span> ${order.status}</div>
 <div class="field"><span class="field-label">Staff Member:</span> ${order.staff_member}</div>
 ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <span class="note">${order.notes}</span></div>` : ''}
+</div>
 
+<div class="section">
 <h2>Order Items</h2>
 <table>
 <tr><th>#</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
@@ -225,7 +233,9 @@ ${activeItems.map((item: any, i: number) => `
 ${item.image_url ? `<tr><td colspan="4"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}`).join('')}
 <tr class="total-row"><td colspan="3">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
 </table>
+</div>
 
+<div class="section">
 <h2>Payments</h2>
 ${payments.length > 0 ? `
 <table>
@@ -244,10 +254,13 @@ ${payments.map((p: any) => `
 <div class="field"><span class="field-label">Total Amount:</span> €${Number(order.total_amount || 0).toFixed(2)}</div>
 <div class="field"><span class="field-label">Total Paid:</span> €${Number(order.total_paid || 0).toFixed(2)}</div>
 <div class="field"><span class="field-label">Balance Due:</span> €${(Number(order.total_amount || 0) - Number(order.total_paid || 0)).toFixed(2)}</div>
+</div>
 
 ${fittingSessions.length > 0 ? `
+<div class="section">
 <h2>Fitting Sessions</h2>
 ${fittingSessions.map((s: any, si: number) => `
+<div class="section">
 <h3>Session ${si + 1} — ${s.date}</h3>
 ${s.notes && s.notes.length > 0 ? `
 <table>
@@ -264,7 +277,9 @@ ${s.photoUrls && s.photoUrls.length > 0 ? `
 <div class="photos">
 ${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
 </div>` : ''}
+</div>
 `).join('')}
+</div>
 ` : ''}
 
 <div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Internal Archive</div>
@@ -301,9 +316,15 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
   .item-photos { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+  .section { page-break-inside: avoid; margin-bottom: 20px; }
+  h1, h2, h3 { page-break-after: avoid; }
+  table { page-break-inside: auto; }
+  tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }
+  thead { display: table-header-group; }
 </style></head><body>
 <h1>Order #${order.order_number} — Client Copy</h1>
 
+<div class="section">
 <h2>Client Information</h2>
 <div class="field"><span class="field-label">Client Name:</span> ${order.client_name}</div>
 <div class="field"><span class="field-label">Phone:</span> ${order.phone}</div>
@@ -314,7 +335,9 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
 <div class="field"><span class="field-label">Status:</span> ${order.status}</div>
 <div class="field"><span class="field-label">Staff Member:</span> ${order.staff_member}</div>
 ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${order.notes}</div>` : ''}
+</div>
 
+<div class="section">
 <h2>Order Items</h2>
 <table>
 <tr><th>#</th><th>Type</th><th>Description</th></tr>
@@ -326,10 +349,13 @@ ${activeItems.map((item: any, i: number) => `
 </tr>
 ${item.image_url ? `<tr><td colspan="3"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}`).join('')}
 </table>
+</div>
 
 ${fittingSessions.length > 0 ? `
+<div class="section">
 <h2>Fitting Sessions</h2>
 ${fittingSessions.map((s: any, si: number) => `
+<div class="section">
 <h3>Session ${si + 1} — ${s.date}</h3>
 ${s.notes && s.notes.length > 0 ? `
 <table>
@@ -345,7 +371,9 @@ ${s.photoUrls && s.photoUrls.length > 0 ? `
 <div class="photos">
 ${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
 </div>` : ''}
+</div>
 `).join('')}
+</div>
 ` : ''}
 
 <div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion</div>
@@ -369,12 +397,20 @@ function buildFittingPdfHtmlNoPrices(data: Awaited<ReturnType<typeof getOrderDat
   .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
   .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+  .section { page-break-inside: avoid; margin-bottom: 20px; }
+  h1, h2, h3 { page-break-after: avoid; }
+  table { page-break-inside: auto; }
+  tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }
+  thead { display: table-header-group; }
 </style></head><body>
+<div class="section">
 <h1>Fitting Sheet — ${order.client_name}</h1>
 <div class="field"><span class="field-label">Order Number:</span> ${order.order_number}</div>
 <div class="field"><span class="field-label">Phone:</span> ${order.phone}</div>
+</div>
 
 ${fittingSessions.length > 0 ? fittingSessions.map((s: any, si: number) => `
+<div class="section">
 <h2>Fitting Session ${si + 1} — ${s.date}</h2>
 ${s.notes && s.notes.length > 0 ? `
 <table>
@@ -390,6 +426,7 @@ ${s.photoUrls && s.photoUrls.length > 0 ? `
 <div class="photos">
 ${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
 </div>` : ''}
+</div>
 `).join('') : '<p>No fitting sessions recorded.</p>'}
 
 <div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Fitting Sheet (Siuvėjoms)</div>
@@ -414,17 +451,23 @@ function buildFittingPdfHtmlWithPrices(data: Awaited<ReturnType<typeof getOrderD
 '  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }' +
 '  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }' +
 '  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }' +
+'  .section { page-break-inside: avoid; margin-bottom: 20px; }' +
+'  h1, h2, h3 { page-break-after: avoid; }' +
+'  table { page-break-inside: auto; }' +
+'  tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }' +
+'  thead { display: table-header-group; }' +
 '</style></head><body>' +
-'<h1>Fitting Sheet — ' + order.client_name + '</h1>' +
+'<div class="section"><h1>Fitting Sheet — ' + order.client_name + '</h1>' +
 '<div class="field"><span class="field-label">Order Number:</span> ' + order.order_number + '</div>' +
-'<div class="field"><span class="field-label">Phone:</span> ' + order.phone + '</div>' +
+'<div class="field"><span class="field-label">Phone:</span> ' + order.phone + '</div></div>' +
 (fittingSessions.length > 0 ? fittingSessions.map((s: any, si: number) => {
   const sessionTotal = s.notes.reduce((sum: number, n: any) => sum + Number(n.price || 0), 0);
-  return '<h2>Fitting Session ' + (si + 1) + ' — ' + s.date + '</h2>' +
+  return '<div class="section"><h2>Fitting Session ' + (si + 1) + ' — ' + s.date + '</h2>' +
     (s.notes && s.notes.length > 0 ? '<table><tr><th>#</th><th>Measurement / Alteration Note</th><th>Price (€)</th></tr>' +
       s.notes.map((n: any, ni: number) => '<tr><td>' + (ni + 1) + '</td><td>' + (n.description || '') + '</td><td>€' + Number(n.price || 0).toFixed(2) + '</td></tr>').join('') +
       '<tr class="total-row"><td colspan="2">Session Total</td><td>€' + sessionTotal.toFixed(2) + '</td></tr></table>' : '<p>No measurement notes recorded.</p>') +
-    (s.photoUrls && s.photoUrls.length > 0 ? '<div class="photos">' + s.photoUrls.map((url: string) => '<img src="' + url + '" alt="Fitting photo" />').join('') + '</div>' : '');
+    (s.photoUrls && s.photoUrls.length > 0 ? '<div class="photos">' + s.photoUrls.map((url: string) => '<img src="' + url + '" alt="Fitting photo" />').join('') + '</div>' : '') +
+    '</div>';
 }).join('') : '<p>No fitting sessions recorded.</p>') +
 '<div class="footer">Generated: ' + new Date().toLocaleString('lt-LT') + ' | Giga Fashion — Fitting Sheet (Pilnas)</div>' +
 '</body></html>';

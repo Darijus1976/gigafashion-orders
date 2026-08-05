@@ -154,6 +154,9 @@ function buildReceiptHtml(order: any, payment: any): string {
   .footer { margin-top: 36px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 12px; }
   .signature-line { border-top: 1px solid #aaa; width: 200px; margin: 36px auto 6px auto; }
   .signature-label { text-align: center; font-size: 13px; color: #777; }
+  .section { page-break-inside: avoid; }
+  .row, .amount-box, .header, .footer { page-break-inside: avoid; }
+  .header, .footer, h1 { page-break-after: avoid; }
 </style></head><body>
 
 <div class="header">
