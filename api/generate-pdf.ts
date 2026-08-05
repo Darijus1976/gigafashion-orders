@@ -182,23 +182,23 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }
+  body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.55; color: #1a1a1a; margin: 0; padding: 15px; }
   h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
-  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }
+  h2 { font-size: 20px; font-weight: bold; margin-top: 22px; margin-bottom: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
+  h3 { font-size: 17px; font-weight: bold; margin-top: 16px; margin-bottom: 8px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 16px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; word-break: break-word; overflow-wrap: break-word; vertical-align: top; }
   th { background: #f3f4f6; font-weight: bold; }
   .field { margin-bottom: 10px; }
   .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }
   .total-row td { font-weight: bold; border-top: 2px solid #333; background: #f9fafb; }
   .note { font-style: italic; color: #555; }
-  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
-  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .item-photos { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
-  .section { page-break-inside: avoid; margin-bottom: 20px; }
+  .photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; page-break-inside: auto; }
+  .photos img { width: 100%; max-height: 260px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .item-photos { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; page-break-inside: auto; }
+  .item-photos img { width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+  .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
   table { page-break-inside: auto; }
   tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }
@@ -302,21 +302,21 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }
+  body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.55; color: #1a1a1a; margin: 0; padding: 15px; }
   h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
-  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }
+  h2 { font-size: 20px; font-weight: bold; margin-top: 22px; margin-bottom: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
+  h3 { font-size: 17px; font-weight: bold; margin-top: 16px; margin-bottom: 8px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 16px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; word-break: break-word; overflow-wrap: break-word; vertical-align: top; }
   th { background: #f3f4f6; font-weight: bold; }
   .field { margin-bottom: 10px; }
   .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }
-  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
-  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .item-photos { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .item-photos img { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
-  .section { page-break-inside: avoid; margin-bottom: 20px; }
+  .photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; page-break-inside: auto; }
+  .photos img { width: 100%; max-height: 260px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .item-photos { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; page-break-inside: auto; }
+  .item-photos img { width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+  .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
   table { page-break-inside: auto; }
   tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }
@@ -385,19 +385,19 @@ function buildFittingPdfHtmlNoPrices(data: Awaited<ReturnType<typeof getOrderDat
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }
+  body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.55; color: #1a1a1a; margin: 0; padding: 15px; }
   h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
-  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }
+  h2 { font-size: 20px; font-weight: bold; margin-top: 22px; margin-bottom: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }
+  h3 { font-size: 17px; font-weight: bold; margin-top: 16px; margin-bottom: 8px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 16px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; word-break: break-word; overflow-wrap: break-word; vertical-align: top; }
   th { background: #f3f4f6; font-weight: bold; }
   .field { margin-bottom: 10px; }
   .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }
-  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
-  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
-  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
-  .section { page-break-inside: avoid; margin-bottom: 20px; }
+  .photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; page-break-inside: auto; }
+  .photos img { width: 100%; max-height: 260px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+  .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
   table { page-break-inside: auto; }
   tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }
@@ -438,20 +438,20 @@ function buildFittingPdfHtmlWithPrices(data: Awaited<ReturnType<typeof getOrderD
 
   return '<!DOCTYPE html>' +
 '<html><head><meta charset="utf-8"><style>' +
-'  body { font-family: Arial, sans-serif; font-size: 15px; line-height: 1.5; color: #1a1a1a; margin: 30px; }' +
+'  body { font-family: Arial, sans-serif; font-size: 16px; line-height: 1.55; color: #1a1a1a; margin: 0; padding: 15px; }' +
 '  h1 { font-size: 26px; font-weight: bold; border-bottom: 3px solid #333; padding-bottom: 10px; margin-bottom: 20px; }' +
-'  h2 { font-size: 20px; font-weight: bold; margin-top: 28px; margin-bottom: 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }' +
-'  h3 { font-size: 17px; font-weight: bold; margin-top: 18px; margin-bottom: 10px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }' +
-'  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 15px; }' +
-'  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; }' +
+'  h2 { font-size: 20px; font-weight: bold; margin-top: 22px; margin-bottom: 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; color: #be123c; }' +
+'  h3 { font-size: 17px; font-weight: bold; margin-top: 16px; margin-bottom: 8px; color: #374151; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }' +
+'  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 16px; }' +
+'  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d1d5db; word-break: break-word; overflow-wrap: break-word; vertical-align: top; }' +
 '  th { background: #f3f4f6; font-weight: bold; }' +
 '  .field { margin-bottom: 10px; }' +
 '  .field-label { font-weight: bold; display: inline-block; width: 180px; color: #374151; }' +
 '  .total-row td { font-weight: bold; border-top: 2px solid #333; background: #f9fafb; }' +
-'  .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }' +
-'  .photos img { width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }' +
-'  .footer { margin-top: 40px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }' +
-'  .section { page-break-inside: avoid; margin-bottom: 20px; }' +
+'  .photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; page-break-inside: auto; }' +
+'  .photos img { width: 100%; max-height: 260px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }' +
+'  .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }' +
+'  .section { page-break-inside: auto; margin-bottom: 28px; }' +
 '  h1, h2, h3 { page-break-after: avoid; }' +
 '  table { page-break-inside: auto; }' +
 '  tr, .field, .photos img, .item-photos img { page-break-inside: avoid; }' +
