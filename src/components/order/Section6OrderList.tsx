@@ -33,6 +33,7 @@ interface OrderItem {
   type: 'dress' | 'change_extra' | 'accessory' | 'fitting' | 'custom'
   description: string
   price: number
+  imageUrl?: string
   deleted?: boolean
   deletedAt?: string
   deletedBy?: string
@@ -153,6 +154,15 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
     }).format(amount)
   }
 
+  // Parse imageUrl — could be a JSON array string or a single URL
+  const getImageUrls = (imageUrl?: string): string[] => {
+    if (!imageUrl) return []
+    if (imageUrl.startsWith('[')) {
+      try { return JSON.parse(imageUrl) } catch { return [imageUrl] }
+    }
+    return [imageUrl]
+  }
+
   return (
     <div className="space-y-6">
       {/* Staff Member for Deletion */}
@@ -200,6 +210,7 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">#</TableHead>
+                  <TableHead className="w-24">Photo</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Price</TableHead>
@@ -207,37 +218,53 @@ export function Section6OrderList({ orderItems, payments, setPayments, onRemoveI
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeItems.map((item, index) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{item.description}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-gray-100">
-                        {categoryLabels[item.type] || item.type}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(item.price)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (onRemoveItem && staffMember) {
-                            onRemoveItem(item.id, staffMember)
-                          }
-                        }}
-                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-100"
-                        disabled={!staffMember}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {activeItems.map((item, index) => {
+                  const imageUrls = getImageUrls(item.imageUrl)
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        {imageUrls.length > 0 ? (
+                          <a href={imageUrls[0]} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={imageUrls[0]}
+                              alt={item.description}
+                              className="w-16 h-16 object-cover rounded-md border bg-white"
+                            />
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-gray-100">
+                          {categoryLabels[item.type] || item.type}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.price)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (onRemoveItem && staffMember) {
+                              onRemoveItem(item.id, staffMember)
+                            }
+                          }}
+                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-100"
+                          disabled={!staffMember}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
                 <TableRow className="border-t-2 border-gray-200">
-                  <TableCell colSpan={4} className="text-right font-bold text-lg">
+                  <TableCell colSpan={5} className="text-right font-bold text-lg">
                     Total:
                   </TableCell>
                   <TableCell className="text-right font-bold text-lg text-rose-600">

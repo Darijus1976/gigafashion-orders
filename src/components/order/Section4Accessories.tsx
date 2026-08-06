@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Plus, ShoppingBag, Crown, Ribbon, Sparkles, ImageIcon } from 'lucide-react'
+import { Plus, ShoppingBag, Crown, Ribbon, Sparkles, ImageIcon, X } from 'lucide-react'
 import { useCatalogue } from '@/hooks/useCatalogue'
 import type { Database } from '@/lib/supabase/types'
 
@@ -22,8 +23,20 @@ interface AccessoryItem {
   imageUrl?: string
 }
 
+interface OrderItem {
+  id: string
+  type: 'dress' | 'change_extra' | 'accessory' | 'fitting' | 'custom'
+  description: string
+  price: number
+  productId?: string
+  imageUrl?: string
+  deleted?: boolean
+}
+
 interface Section4AccessoriesProps {
   onAddToOrder: (item: AccessoryItem) => void
+  orderItems?: OrderItem[]
+  onRemoveItem?: (id: string) => void
 }
 
 interface AccessoryCategory {
@@ -72,7 +85,8 @@ const categories: AccessoryCategory[] = [
   },
 ]
 
-export function Section4Accessories({ onAddToOrder }: Section4AccessoriesProps) {
+export function Section4Accessories({ onAddToOrder, orderItems = [], onRemoveItem }: Section4AccessoriesProps) {
+  const accessoryItems = orderItems.filter(item => item.type === 'accessory' && !item.deleted)
   const [selectedCategory, setSelectedCategory] = useState<AccessoryType | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const {
@@ -109,6 +123,36 @@ export function Section4Accessories({ onAddToOrder }: Section4AccessoriesProps) 
 
   return (
     <div className="space-y-4">
+      {accessoryItems.length > 0 && (
+        <div className="space-y-2">
+          <Label>Added accessories:</Label>
+          <div className="space-y-2">
+            {accessoryItems.map((item) => (
+              <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-3">
+                    {item.imageUrl && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <a href={item.imageUrl} target="_blank" rel="noopener noreferrer">
+                          <img src={item.imageUrl} alt={item.description} className="w-full max-h-[500px] object-contain rounded-lg border bg-white" />
+                        </a>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-base font-semibold">{item.description}</p>
+                      <p className="text-base text-rose-600 font-semibold">€{item.price.toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => { if (onRemoveItem) onRemoveItem(item.id) }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 3x2 Grid */}
       <div className="grid grid-cols-3 gap-4">
         {categories.map((category) => (

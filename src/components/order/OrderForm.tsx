@@ -677,7 +677,11 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           className="p-5"
           style={{ display: isExpanded[4] ? 'block' : 'none' }}
         >
-          <Section4Accessories onAddToOrder={handleAddAccessoryToOrder} />
+          <Section4Accessories 
+            onAddToOrder={handleAddAccessoryToOrder} 
+            orderItems={orderItems}
+            onRemoveItem={(id) => setOrderItems(prev => prev.filter(item => item.id !== id))}
+          />
         </div>
       </div>
 
