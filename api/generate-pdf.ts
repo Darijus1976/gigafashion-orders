@@ -197,6 +197,7 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
   .photos img { width: 100%; max-height: 260px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .item-photos { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; page-break-inside: auto; }
   .item-photos img { width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .item-group { page-break-inside: avoid; }
   .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
   .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
@@ -224,13 +225,16 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <spa
 <table>
 <tr><th>#</th><th>Type</th><th>Description</th><th>Price (€)</th></tr>
 ${activeItems.map((item: any, i: number) => `
+<tbody class="item-group">
 <tr>
   <td>${i + 1}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
   <td>€${Number(item.price || 0).toFixed(2)}</td>
 </tr>
-${item.image_url ? `<tr><td colspan="4"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}`).join('')}
+${item.image_url ? `<tr><td colspan="4"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}
+</tbody>
+`).join('')}
 <tr class="total-row"><td colspan="3">Total</td><td>€${totalAmount.toFixed(2)}</td></tr>
 </table>
 </div>
@@ -315,6 +319,7 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
   .photos img { width: 100%; max-height: 260px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .item-photos { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; page-break-inside: auto; }
   .item-photos img { width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
+  .item-group { page-break-inside: avoid; }
   .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
   .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
@@ -342,12 +347,15 @@ ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${or
 <table>
 <tr><th>#</th><th>Type</th><th>Description</th></tr>
 ${activeItems.map((item: any, i: number) => `
+<tbody class="item-group">
 <tr>
   <td>${i + 1}</td>
   <td>${item.item_type}</td>
   <td>${item.description}</td>
 </tr>
-${item.image_url ? `<tr><td colspan="3"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}`).join('')}
+${item.image_url ? `<tr><td colspan="3"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}
+</tbody>
+`).join('')}
 </table>
 </div>
 
