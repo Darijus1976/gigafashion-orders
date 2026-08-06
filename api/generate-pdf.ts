@@ -166,7 +166,7 @@ async function getOrderData(supabase: ReturnType<typeof createClient>, orderId: 
 }
 
 function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): string {
-  const { order, items, payments, fittingSessions } = data;
+  const { order, items, payments } = data;
   const occasionLabels: Record<string, string> = {
     christening: 'Christening',
     communion: 'Communion',
@@ -260,38 +260,12 @@ ${payments.map((p: any) => `
 <div class="field"><span class="field-label">Balance Due:</span> €${(Number(order.total_amount || 0) - Number(order.total_paid || 0)).toFixed(2)}</div>
 </div>
 
-${fittingSessions.length > 0 ? `
-<div class="section">
-<h2>Fitting Sessions</h2>
-${fittingSessions.map((s: any, si: number) => `
-<div class="section">
-<h3>Session ${si + 1} — ${s.date}</h3>
-${s.notes && s.notes.length > 0 ? `
-<table>
-<tr><th>#</th><th>Description</th><th>Price (€)</th></tr>
-${s.notes.map((n: any, ni: number) => `
-<tr>
-  <td>${ni + 1}</td>
-  <td>${n.description || ''}</td>
-  <td>€${Number(n.price || 0).toFixed(2)}</td>
-</tr>`).join('')}
-</table>
-` : '<p>No notes.</p>'}
-${s.photoUrls && s.photoUrls.length > 0 ? `
-<div class="photos">
-${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
-</div>` : ''}
-</div>
-`).join('')}
-</div>
-` : ''}
-
 <div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion — Internal Archive</div>
 </body></html>`;
 }
 
 function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): string {
-  const { order, items, fittingSessions } = data;
+  const { order, items } = data;
   const occasionLabels: Record<string, string> = {
     christening: 'Christening',
     communion: 'Communion',
@@ -358,31 +332,6 @@ ${item.image_url ? `<tr><td colspan="3"><div class="item-photos">${getImageUrls(
 `).join('')}
 </table>
 </div>
-
-${fittingSessions.length > 0 ? `
-<div class="section">
-<h2>Fitting Sessions</h2>
-${fittingSessions.map((s: any, si: number) => `
-<div class="section">
-<h3>Session ${si + 1} — ${s.date}</h3>
-${s.notes && s.notes.length > 0 ? `
-<table>
-<tr><th>#</th><th>Description</th></tr>
-${s.notes.map((n: any, ni: number) => `
-<tr>
-  <td>${ni + 1}</td>
-  <td>${n.description || ''}</td>
-</tr>`).join('')}
-</table>
-` : '<p>No notes.</p>'}
-${s.photoUrls && s.photoUrls.length > 0 ? `
-<div class="photos">
-${s.photoUrls.map((url: string) => `<img src="${url}" alt="Fitting photo" />`).join('')}
-</div>` : ''}
-</div>
-`).join('')}
-</div>
-` : ''}
 
 <div class="footer">Generated: ${new Date().toLocaleString('lt-LT')} | Giga Fashion</div>
 </body></html>`;
