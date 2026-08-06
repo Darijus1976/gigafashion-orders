@@ -10,5 +10,16 @@ alter table order_items
 -- Rename products catalogue value 'extras' -> 'accessories'
 update products set catalogue = 'accessories' where catalogue = 'extras';
 
--- Rename products.extras_type column to accessory_type
-alter table products rename column extras_type to accessory_type;
+-- Rename products.extras_type column to accessory_type (only if it still exists under the old name)
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'products' and column_name = 'extras_type'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_name = 'products' and column_name = 'accessory_type'
+  ) then
+    alter table products rename column extras_type to accessory_type;
+  end if;
+end $$;
