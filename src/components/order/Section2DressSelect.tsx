@@ -26,7 +26,7 @@ interface DressSelectionItem {
 
 interface OrderItem {
   id: string
-  type: 'dress' | 'change_extra' | 'extra' | 'fitting' | 'custom'
+  type: 'dress' | 'change_extra' | 'accessory' | 'fitting' | 'custom'
   description: string
   price: number
   productId?: string
@@ -65,7 +65,7 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           .from('products')
           .select('*')
           .eq('is_active', true)
-          .neq('catalogue', 'extras')
+          .neq('catalogue', 'accessories')
           .order('display_order', { ascending: true })
           .order('name', { ascending: true })
 

@@ -11,10 +11,10 @@ const catalogueLabels: Record<string, string> = {
   christening: 'Christening',
   communion: 'Communion',
   confirmation: 'Confirmation',
-  extras: 'Extras',
+  accessories: 'Accessories',
 }
 
-const catalogueOrder = ['wedding', 'debs', 'christening', 'communion', 'confirmation', 'extras']
+const catalogueOrder = ['wedding', 'debs', 'christening', 'communion', 'confirmation', 'accessories']
 
 export function CatalogueManager() {
   const navigate = useNavigate()

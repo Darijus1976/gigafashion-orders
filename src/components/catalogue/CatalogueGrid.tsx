@@ -13,7 +13,7 @@ type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 interface CatalogueGridProps {
   catalogue?: Catalogue
   occasion?: Occasion | null
-  extrasType?: 'bags' | 'veils' | 'belts' | 'headbands'
+  accessoryType?: 'bags' | 'veils' | 'belts' | 'headbands'
   onAddToOrder?: (product: Product) => void
   showSearch?: boolean
   showViewToggle?: boolean
@@ -26,7 +26,7 @@ const ITEMS_PER_PAGE = 12
 export function CatalogueGrid({
   catalogue,
   occasion,
-  extrasType,
+  accessoryType,
   onAddToOrder,
   showSearch = true,
   showViewToggle = false,
@@ -40,7 +40,7 @@ export function CatalogueGrid({
   const { data: products, isLoading, isError, error } = useCatalogue({
     catalogue,
     occasion,
-    extrasType,
+    accessoryType,
   })
 
   // Filter products by search query

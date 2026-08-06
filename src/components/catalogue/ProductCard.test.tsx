@@ -12,7 +12,7 @@ describe('ProductCard', () => {
     is_active: true,
     display_order: 1,
     occasion_tags: ['wedding', 'formal'],
-    extras_type: null,
+    accessory_type: null,
   }
 
   it('should render product name and price', () => {

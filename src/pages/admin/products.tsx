@@ -52,7 +52,7 @@ async function compressImage(file: File): Promise<File> {
 export default function AdminProductsPage() {
   const [searchParams] = useSearchParams()
   const catalogueFilter = searchParams.get('catalogue')
-  const extrasTypeFilter = searchParams.get('extrasType')
+  const accessoryTypeFilter = searchParams.get('accessoryType')
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -115,7 +115,7 @@ export default function AdminProductsPage() {
         price: formData.price,
         description: formData.description || null,
         catalogue: formData.catalogue,
-        extras_type: formData.extras_type,
+        accessory_type: formData.accessory_type,
         image_url: imageUrl,
         is_active: formData.is_active,
         display_order: formData.display_order,
@@ -189,10 +189,10 @@ export default function AdminProductsPage() {
     christening: 'Christening',
     communion: 'Communion',
     confirmation: 'Confirmation',
-    extras: 'Extras',
+    accessories: 'Accessories',
   }
 
-  const extrasTypeLabels: Record<string, string> = {
+  const accessoryTypeLabels: Record<string, string> = {
     bags: 'Bags',
     veils: 'Veils',
     belts: 'Belts',
@@ -202,10 +202,10 @@ export default function AdminProductsPage() {
     uncategorized: 'Uncategorized',
   }
 
-  const extrasTypeOrder = ['bags', 'veils', 'belts', 'headbands', 'tiaras', 'cuffs_gloves', 'uncategorized']
+  const accessoryTypeOrder = ['bags', 'veils', 'belts', 'headbands', 'tiaras', 'cuffs_gloves', 'uncategorized']
 
-  const extrasGroups = products.reduce((acc, product) => {
-    const type = product.extras_type || 'uncategorized'
+  const accessoryGroups = products.reduce((acc, product) => {
+    const type = product.accessory_type || 'uncategorized'
     if (!acc[type]) acc[type] = []
     acc[type].push(product)
     return acc
@@ -215,13 +215,14 @@ export default function AdminProductsPage() {
     fetchProducts()
   }, [catalogueFilter])
 
+
   const openProduct = (product: Product) => {
     setEditingProduct(product)
     setIsFormOpen(true)
   }
 
-  const selectedExtrasProducts = extrasTypeFilter
-    ? extrasGroups[extrasTypeFilter] || []
+  const selectedAccessoryProducts = accessoryTypeFilter
+    ? accessoryGroups[accessoryTypeFilter] || []
     : []
 
   const renderProductCard = (product: Product) => (
@@ -277,9 +278,9 @@ export default function AdminProductsPage() {
         <p className="text-2xl font-bold text-rose-600">
           €{product.price.toFixed(2)}
         </p>
-        {product.extras_type && (
+        {product.accessory_type && (
           <p className="text-sm text-muted-foreground mt-1">
-            Type: {extrasTypeLabels[product.extras_type] || product.extras_type}
+            Type: {accessoryTypeLabels[product.accessory_type] || product.accessory_type}
           </p>
         )}
       </CardContent>
@@ -314,52 +315,52 @@ export default function AdminProductsPage() {
               <p className="text-muted-foreground">No products yet. Add your first product!</p>
             </CardContent>
           </Card>
-        ) : catalogueFilter === 'extras' ? (
-          extrasTypeFilter ? (
+        ) : catalogueFilter === 'accessories' ? (
+          accessoryTypeFilter ? (
             <div className="space-y-6">
               <Button
                 variant="outline"
                 onClick={() => {
-                  window.history.pushState(null, '', '/admin/products?catalogue=extras')
+                  window.history.pushState(null, '', '/admin/products?catalogue=accessories')
                   window.dispatchEvent(new PopStateEvent('popstate'))
                 }}
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
-                Back to Extras folders
+                Back to Accessories folders
               </Button>
 
               <div className="flex items-center justify-between border-b border-rose-200 pb-2">
                 <h2 className="text-xl font-bold text-rose-700">
-                  {extrasTypeLabels[extrasTypeFilter] || extrasTypeFilter}
+                  {accessoryTypeLabels[accessoryTypeFilter] || accessoryTypeFilter}
                 </h2>
                 <span className="text-sm text-muted-foreground">
-                  {selectedExtrasProducts.length} products
+                  {selectedAccessoryProducts.length} products
                 </span>
               </div>
 
-              {selectedExtrasProducts.length === 0 ? (
+              {selectedAccessoryProducts.length === 0 ? (
                 <Card>
                   <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">No products in this extras folder yet.</p>
+                    <p className="text-muted-foreground">No products in this accessories folder yet.</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {selectedExtrasProducts.map(renderProductCard)}
+                  {selectedAccessoryProducts.map(renderProductCard)}
                 </div>
               )}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {extrasTypeOrder.map((type) => {
-                const count = extrasGroups[type]?.length || 0
+              {accessoryTypeOrder.map((type) => {
+                const count = accessoryGroups[type]?.length || 0
 
                 return (
                   <Card
                     key={type}
                     className="cursor-pointer transition-shadow hover:shadow-md"
                     onClick={() => {
-                      window.history.pushState(null, '', `/admin/products?catalogue=extras&extrasType=${type}`)
+                      window.history.pushState(null, '', `/admin/products?catalogue=accessories&accessoryType=${type}`)
                       window.dispatchEvent(new PopStateEvent('popstate'))
                     }}
                   >
@@ -369,7 +370,7 @@ export default function AdminProductsPage() {
                       </div>
                       <div>
                         <h2 className="text-lg font-semibold">
-                          {extrasTypeLabels[type] || type}
+                          {accessoryTypeLabels[type] || type}
                         </h2>
                         <p className="text-sm text-muted-foreground">
                           {count} products

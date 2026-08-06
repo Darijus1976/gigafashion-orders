@@ -21,10 +21,10 @@ const CATALOGUES: { value: Catalogue; label: string }[] = [
   { value: 'christening', label: 'Christening' },
   { value: 'communion', label: 'Communion' },
   { value: 'confirmation', label: 'Confirmation' },
-  { value: 'extras', label: 'Extras' },
+  { value: 'accessories', label: 'Accessories' },
 ]
 
-const EXTRAS_TYPES = [
+const ACCESSORY_TYPES = [
   { value: 'bags', label: 'Bags' },
   { value: 'veils', label: 'Veils' },
   { value: 'belts', label: 'Belts' },
@@ -47,8 +47,8 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   price: z.number().min(0, 'Price cannot be negative'),
   description: z.string().optional(),
-  catalogue: z.enum(['wedding', 'debs', 'christening', 'communion', 'confirmation', 'extras']),
-  extras_type: z.enum(['bags', 'veils', 'belts', 'headbands', 'tiaras', 'cuffs_gloves']).nullable().optional(),
+  catalogue: z.enum(['wedding', 'debs', 'christening', 'communion', 'confirmation', 'accessories']),
+  accessory_type: z.enum(['bags', 'veils', 'belts', 'headbands', 'tiaras', 'cuffs_gloves']).nullable().optional(),
   occasion_tags: z.array(z.string()).default([]),
   is_active: z.boolean().default(true),
   display_order: z.number().default(0),
@@ -90,7 +90,7 @@ export function ProductForm({
       price: product?.price || 0,
       description: '',
       catalogue: product?.catalogue || initialCatalogue || 'wedding',
-      extras_type: product?.extras_type || null,
+      accessory_type: product?.accessory_type || null,
       occasion_tags: product?.occasion_tags || [],
       is_active: product?.is_active ?? true,
       display_order: product?.display_order || 0,
@@ -99,7 +99,7 @@ export function ProductForm({
 
   const selectedCatalogue = watch('catalogue')
   const occasionTags = watch('occasion_tags')
-  const isExtras = selectedCatalogue === 'extras'
+  const isAccessories = selectedCatalogue === 'accessories'
 
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -229,17 +229,17 @@ export function ProductForm({
               </select>
             </div>
 
-            {/* Extras Type (only for extras catalogue) */}
-            {isExtras && (
+            {/* Accessory Type (only for accessories catalogue) */}
+            {isAccessories && (
               <div className="space-y-2">
-                <Label htmlFor="extras_type">Extras Type</Label>
+                <Label htmlFor="accessory_type">Accessory Type</Label>
                 <select
-                  id="extras_type"
-                  {...register('extras_type')}
+                  id="accessory_type"
+                  {...register('accessory_type')}
                   className="w-full border rounded-md px-3 py-2"
                 >
                   <option value="">Select type</option>
-                  {EXTRAS_TYPES.map((type) => (
+                  {ACCESSORY_TYPES.map((type) => (
                     <option key={type.value} value={type.value}>
                       {type.label}
                     </option>

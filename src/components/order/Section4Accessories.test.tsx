@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { Section4Extras } from './Section4Extras'
+import { Section4Accessories } from './Section4Accessories'
 
-describe('Section4Extras', () => {
+describe('Section4Accessories', () => {
   it('should render 6 category tiles in 3x2 grid', () => {
-    render(<Section4Extras onAddToOrder={vi.fn()} />)
+    render(<Section4Accessories onAddToOrder={vi.fn()} />)
 
     expect(screen.getByText(/bags/i)).toBeInTheDocument()
     expect(screen.getByText(/veils/i)).toBeInTheDocument()
@@ -15,7 +15,7 @@ describe('Section4Extras', () => {
   })
 
   it('should open dialog when category tile is clicked', async () => {
-    render(<Section4Extras onAddToOrder={vi.fn()} />)
+    render(<Section4Accessories onAddToOrder={vi.fn()} />)
     
     fireEvent.click(screen.getByText(/bags/i))
     
@@ -25,7 +25,7 @@ describe('Section4Extras', () => {
   })
 
   it('should display products for selected category', async () => {
-    render(<Section4Extras onAddToOrder={vi.fn()} />)
+    render(<Section4Accessories onAddToOrder={vi.fn()} />)
     
     fireEvent.click(screen.getByText(/bags/i))
     
@@ -35,9 +35,9 @@ describe('Section4Extras', () => {
     })
   })
 
-  it('should add extra to order when product is selected', async () => {
+  it('should add accessory to order when product is selected', async () => {
     const onAddToOrder = vi.fn()
-    render(<Section4Extras onAddToOrder={onAddToOrder} />)
+    render(<Section4Accessories onAddToOrder={onAddToOrder} />)
     
     fireEvent.click(screen.getByText(/bags/i))
     
@@ -56,7 +56,7 @@ describe('Section4Extras', () => {
 
   it('should close dialog after adding product', async () => {
     const onAddToOrder = vi.fn()
-    render(<Section4Extras onAddToOrder={onAddToOrder} />)
+    render(<Section4Accessories onAddToOrder={onAddToOrder} />)
     
     fireEvent.click(screen.getByText(/bags/i))
     
@@ -71,7 +71,7 @@ describe('Section4Extras', () => {
   })
 
   it('should show product count on tiles', () => {
-    render(<Section4Extras onAddToOrder={vi.fn()} />)
+    render(<Section4Accessories onAddToOrder={vi.fn()} />)
     
     const tiles = screen.getAllByText(/products/i)
     expect(tiles.length).toBe(6)

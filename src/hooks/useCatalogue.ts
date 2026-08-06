@@ -9,7 +9,7 @@ type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 interface UseCatalogueOptions {
   catalogue?: Catalogue
   occasion?: Occasion | null
-  extrasType?: 'bags' | 'veils' | 'belts' | 'headbands' | 'tiaras' | 'cuffs_gloves'
+  accessoryType?: 'bags' | 'veils' | 'belts' | 'headbands' | 'tiaras' | 'cuffs_gloves'
   enabled?: boolean
 }
 
@@ -17,7 +17,7 @@ const STALE_TIME = 5 * 60 * 1000 // 5 minutes
 const CACHE_TIME = 10 * 60 * 1000 // 10 minutes
 
 async function fetchProducts(options: UseCatalogueOptions = {}): Promise<Product[]> {
-  const { catalogue, occasion, extrasType } = options
+  const { catalogue, occasion, accessoryType } = options
 
   const { data, error } = await supabase
     .from('products')
@@ -34,8 +34,8 @@ async function fetchProducts(options: UseCatalogueOptions = {}): Promise<Product
     filtered = filtered.filter(p => p.catalogue === catalogue)
   }
 
-  if (extrasType) {
-    filtered = filtered.filter(p => p.extras_type === extrasType)
+  if (accessoryType) {
+    filtered = filtered.filter(p => p.accessory_type === accessoryType)
   }
 
   if (occasion) {
@@ -51,9 +51,9 @@ async function fetchProducts(options: UseCatalogueOptions = {}): Promise<Product
 }
 
 export function useCatalogue(options: UseCatalogueOptions = {}) {
-  const { catalogue, occasion, extrasType, enabled = true } = options
+  const { catalogue, occasion, accessoryType, enabled = true } = options
   
-  const queryKey = ['catalogue', { catalogue, occasion, extrasType }]
+  const queryKey = ['catalogue', { catalogue, occasion, accessoryType }]
   
   return useQuery({
     queryKey,
@@ -89,8 +89,8 @@ export function usePrefetchCatalogue() {
   
   return {
     prefetchCatalogue: (options: UseCatalogueOptions) => {
-      const { catalogue, occasion, extrasType } = options
-      const queryKey = ['catalogue', { catalogue, occasion, extrasType }]
+      const { catalogue, occasion, accessoryType } = options
+      const queryKey = ['catalogue', { catalogue, occasion, accessoryType }]
       
       return queryClient.prefetchQuery({
         queryKey,
@@ -101,9 +101,9 @@ export function usePrefetchCatalogue() {
     
     invalidateCatalogue: (options?: UseCatalogueOptions) => {
       if (options) {
-        const { catalogue, occasion, extrasType } = options
+        const { catalogue, occasion, accessoryType } = options
         queryClient.invalidateQueries({
-          queryKey: ['catalogue', { catalogue, occasion, extrasType }],
+          queryKey: ['catalogue', { catalogue, occasion, accessoryType }],
         })
       } else {
         queryClient.invalidateQueries({ queryKey: ['catalogue'] })

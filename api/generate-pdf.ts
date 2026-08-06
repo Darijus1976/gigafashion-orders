@@ -29,7 +29,7 @@ function sanitizeFilename(name: string): string {
 const itemTypeLabels: Record<string, string> = {
   dress: 'Dress',
   change_extra: 'Changes/Extras',
-  extra: 'Extra',
+  accessory: 'Accessory',
   fitting: 'Fitting',
   custom: 'Custom',
 };

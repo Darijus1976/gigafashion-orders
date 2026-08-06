@@ -15,7 +15,7 @@ const catalogueTabs = [
   { value: 'christening', label: 'Christening', href: '/admin/catalogues?tab=christening' },
   { value: 'communion', label: 'Communion', href: '/admin/catalogues?tab=communion' },
   { value: 'confirmation', label: 'Confirmation', href: '/admin/catalogues?tab=confirmation' },
-  { value: 'extras', label: 'Extras', href: '/admin/catalogues?tab=extras' },
+  { value: 'accessories', label: 'Accessories', href: '/admin/catalogues?tab=accessories' },
 ]
 
 export function AdminLayout({ children }: AdminLayoutProps) {

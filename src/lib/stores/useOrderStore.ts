@@ -8,7 +8,7 @@ type PaymentMethod = 'cash' | 'card' | 'link'
 
 export interface OrderItem {
   id: string
-  type: 'dress' | 'change_extra' | 'extra' | 'fitting' | 'custom'
+  type: 'dress' | 'change_extra' | 'accessory' | 'fitting' | 'custom'
   description: string
   price: number
   productId?: string

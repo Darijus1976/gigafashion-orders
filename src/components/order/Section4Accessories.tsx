@@ -12,9 +12,9 @@ import { useCatalogue } from '@/hooks/useCatalogue'
 import type { Database } from '@/lib/supabase/types'
 
 type Product = Database['public']['Tables']['products']['Row']
-type ExtrasType = 'bags' | 'veils' | 'belts' | 'headbands' | 'tiaras' | 'cuffs_gloves'
+type AccessoryType = 'bags' | 'veils' | 'belts' | 'headbands' | 'tiaras' | 'cuffs_gloves'
 
-interface ExtraItem {
+interface AccessoryItem {
   id: string
   description: string
   price: number
@@ -22,18 +22,18 @@ interface ExtraItem {
   imageUrl?: string
 }
 
-interface Section4ExtrasProps {
-  onAddToOrder: (item: ExtraItem) => void
+interface Section4AccessoriesProps {
+  onAddToOrder: (item: AccessoryItem) => void
 }
 
-interface ExtrasCategory {
-  type: ExtrasType
+interface AccessoryCategory {
+  type: AccessoryType
   title: string
   icon: React.ReactNode
   color: string
 }
 
-const categories: ExtrasCategory[] = [
+const categories: AccessoryCategory[] = [
   {
     type: 'bags',
     title: 'Bags',
@@ -72,23 +72,23 @@ const categories: ExtrasCategory[] = [
   },
 ]
 
-export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
-  const [selectedCategory, setSelectedCategory] = useState<ExtrasType | null>(null)
+export function Section4Accessories({ onAddToOrder }: Section4AccessoriesProps) {
+  const [selectedCategory, setSelectedCategory] = useState<AccessoryType | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const {
-    data: extrasProducts = [],
+    data: accessoryProducts = [],
     isLoading,
     isError,
   } = useCatalogue({
-    catalogue: 'extras',
+    catalogue: 'accessories',
   })
 
-  const handleCategoryClick = (type: ExtrasType) => {
+  const handleCategoryClick = (type: AccessoryType) => {
     setSelectedCategory(type)
     setIsDialogOpen(true)
   }
 
-  const handleAddExtra = (product: Product) => {
+  const handleAddAccessory = (product: Product) => {
     onAddToOrder({
       id: crypto.randomUUID(),
       description: product.name,
@@ -101,11 +101,11 @@ export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
 
   const selectedCategoryData = categories.find(c => c.type === selectedCategory)
   const products = selectedCategory
-    ? extrasProducts.filter(product => product.extras_type === selectedCategory)
+    ? accessoryProducts.filter(product => product.accessory_type === selectedCategory)
     : []
 
-  const getCategoryCount = (type: ExtrasType) =>
-    extrasProducts.filter(product => product.extras_type === type).length
+  const getCategoryCount = (type: AccessoryType) =>
+    accessoryProducts.filter(product => product.accessory_type === type).length
 
   return (
     <div className="space-y-4">
@@ -144,7 +144,7 @@ export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
             </p>
           ) : isError ? (
             <p className="text-center text-rose-600 py-8">
-              Could not load extras from catalogue
+              Could not load accessories from catalogue
             </p>
           ) : products.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
@@ -181,7 +181,7 @@ export function Section4Extras({ onAddToOrder }: Section4ExtrasProps) {
                     <Button
                       className="w-full mt-3"
                       size="sm"
-                      onClick={() => handleAddExtra(product)}
+                      onClick={() => handleAddAccessory(product)}
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add

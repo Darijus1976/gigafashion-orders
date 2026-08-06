@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { Section1ClientInfo } from './Section1ClientInfo'
 import { Section2DressSelect } from './Section2DressSelect'
 import { MIN_CHANGES_EXTRAS_ROWS, Section3ChangesExtras, type ChangesExtrasRow } from './Section3ChangesExtras'
-import { Section4Extras } from './Section4Extras'
+import { Section4Accessories } from './Section4Accessories'
 import { MIN_FITTING_NOTES, Section5Fitting, type FittingSession } from './Section5Fitting'
 import { Section6OrderList, type Payment } from './Section6OrderList'
 import { OrderFormFooter } from './OrderFormFooter'
@@ -65,7 +65,7 @@ const getInitialFittingSessions = (): FittingSession[] => {
 
 interface OrderItem {
   id: string
-  type: 'dress' | 'change_extra' | 'extra' | 'fitting' | 'custom'
+  type: 'dress' | 'change_extra' | 'accessory' | 'fitting' | 'custom'
   description: string
   price: number
   productId?: string
@@ -528,7 +528,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     setOrderItems(prev => prev.filter(item => item.id !== id))
   }
   
-  const handleAddExtraToOrder = (item: {
+  const handleAddAccessoryToOrder = (item: {
     id: string
     description: string
     price: number
@@ -537,14 +537,14 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   }) => {
     const orderItem: OrderItem = {
       id: item.id,
-      type: 'extra',
+      type: 'accessory',
       description: item.description,
       price: item.price,
       productId: item.productId,
       imageUrl: item.imageUrl,
     }
     setOrderItems(prev => [...prev, orderItem])
-    console.log('Added extra to order:', orderItem)
+    console.log('Added accessory to order:', orderItem)
   }
   
   const handleAddFittingToOrder = (item: {
@@ -664,20 +664,20 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         </div>
       </div>
 
-      {/* Section 4 - Extras */}
+      {/* Section 4 - Accessories */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(4)}
           className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
-          <span>4. Extras</span>
+          <span>4. Accessories</span>
           <span>{isExpanded[4] ? '−' : '+'}</span>
         </button>
         <div
           className="p-5"
           style={{ display: isExpanded[4] ? 'block' : 'none' }}
         >
-          <Section4Extras onAddToOrder={handleAddExtraToOrder} />
+          <Section4Accessories onAddToOrder={handleAddAccessoryToOrder} />
         </div>
       </div>
 
