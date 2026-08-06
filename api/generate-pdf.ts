@@ -206,6 +206,7 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
   .item-photos { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; page-break-inside: auto; }
   .item-photos img { width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .item-group { page-break-inside: avoid; break-inside: avoid; -webkit-break-inside: avoid; }
+  .payments-section { page-break-inside: avoid; break-inside: avoid; -webkit-break-inside: avoid; }
   .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
   .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
@@ -247,7 +248,7 @@ ${item.image_url ? `<tr><td colspan="4"><div class="item-photos">${getImageUrls(
 </table>
 </div>
 
-<div class="section">
+<div class="section payments-section">
 <h2>Payments</h2>
 ${payments.length > 0 ? `
 <table>
@@ -302,6 +303,7 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
   .item-photos { margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; page-break-inside: auto; }
   .item-photos img { width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; }
   .item-group { page-break-inside: avoid; break-inside: avoid; -webkit-break-inside: avoid; }
+  .payments-section { page-break-inside: avoid; break-inside: avoid; -webkit-break-inside: avoid; }
   .footer { margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
   .section { page-break-inside: auto; margin-bottom: 28px; }
   h1, h2, h3 { page-break-after: avoid; }
