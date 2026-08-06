@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { Section3Alterations, type AlterationRow, MIN_ALTERATION_ROWS, MAX_ALTERATION_ROWS } from './Section3Alterations'
+import { Section3ChangesExtras, type ChangesExtrasRow, MIN_CHANGES_EXTRAS_ROWS, MAX_CHANGES_EXTRAS_ROWS } from './Section3ChangesExtras'
 
-function createRows(count: number): AlterationRow[] {
+function createRows(count: number): ChangesExtrasRow[] {
   return Array.from({ length: count }, () => ({
     id: crypto.randomUUID(),
     description: '',
@@ -14,19 +14,19 @@ function createRows(count: number): AlterationRow[] {
 }
 
 interface TestWrapperProps {
-  initialRows?: AlterationRow[]
+  initialRows?: ChangesExtrasRow[]
   onAddToOrder?: (item: { id: string; description: string; price: number }) => void
   onRemoveFromOrder?: (id: string) => void
 }
 
 function TestWrapper({
-  initialRows = createRows(MIN_ALTERATION_ROWS),
+  initialRows = createRows(MIN_CHANGES_EXTRAS_ROWS),
   onAddToOrder = vi.fn(),
   onRemoveFromOrder = vi.fn(),
 }: TestWrapperProps) {
   const [rows, setRows] = useState(initialRows)
   return (
-    <Section3Alterations
+    <Section3ChangesExtras
       onAddToOrder={onAddToOrder}
       onRemoveFromOrder={onRemoveFromOrder}
       rows={rows}
@@ -35,7 +35,7 @@ function TestWrapper({
   )
 }
 
-describe('Section3Alterations', () => {
+describe('Section3ChangesExtras', () => {
   it('should render with 5 initial rows', () => {
     render(<TestWrapper />)
 
@@ -60,7 +60,7 @@ describe('Section3Alterations', () => {
     expect(addButton).toBeDisabled()
   })
 
-  it('should add alteration to order automatically on blur', () => {
+  it('should add change/extra to order automatically on blur', () => {
     const onAddToOrder = vi.fn()
     render(<TestWrapper onAddToOrder={onAddToOrder} />)
 
@@ -82,7 +82,7 @@ describe('Section3Alterations', () => {
     })
   })
 
-  it('should add alteration to order when Enter is pressed', () => {
+  it('should add change/extra to order when Enter is pressed', () => {
     const onAddToOrder = vi.fn()
     render(<TestWrapper onAddToOrder={onAddToOrder} />)
 

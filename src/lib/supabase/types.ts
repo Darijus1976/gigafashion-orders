@@ -27,7 +27,7 @@ export interface Database {
         Row: {
           id: string
           order_id: string
-          item_type: 'dress' | 'alteration' | 'extra' | 'fitting' | 'custom'
+          item_type: 'dress' | 'change_extra' | 'extra' | 'fitting' | 'custom'
           description: string
           price: number
           product_id: string | null

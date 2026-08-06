@@ -5,7 +5,7 @@ import { Section6OrderList } from './Section6OrderList'
 describe('Section6OrderList', () => {
   const mockOrderItems = [
     { id: '1', type: 'dress' as const, description: 'Klasikinė suknelė', price: 240.00 },
-    { id: '2', type: 'alteration' as const, description: 'Trumpesnės rankovės', price: 25.00 },
+    { id: '2', type: 'change_extra' as const, description: 'Trumpesnės rankovės', price: 25.00 },
     { id: '3', type: 'extra' as const, description: 'Perlų rankinė', price: 45.00 },
   ]
 
@@ -67,7 +67,7 @@ describe('Section6OrderList', () => {
     render(<Section6OrderList orderItems={mockOrderItems} />)
 
     expect(screen.getByText(/dress/i)).toBeInTheDocument()
-    expect(screen.getByText(/alteration/i)).toBeInTheDocument()
+    expect(screen.getByText(/changes\/extras/i)).toBeInTheDocument()
     expect(screen.getByText(/extra/i)).toBeInTheDocument()
   })
 

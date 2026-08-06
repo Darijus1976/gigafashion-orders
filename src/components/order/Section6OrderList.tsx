@@ -30,7 +30,7 @@ const STAFF_MEMBERS = [
 
 interface OrderItem {
   id: string
-  type: 'dress' | 'alteration' | 'extra' | 'fitting' | 'custom'
+  type: 'dress' | 'change_extra' | 'extra' | 'fitting' | 'custom'
   description: string
   price: number
   deleted?: boolean
@@ -57,7 +57,7 @@ interface Section6OrderListProps {
 
 const categoryLabels: Record<string, string> = {
   dress: 'Dress',
-  alteration: 'Alteration',
+  change_extra: 'Changes/Extras',
   extra: 'Extra',
   fitting: 'Fitting',
   custom: 'Custom',

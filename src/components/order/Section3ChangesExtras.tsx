@@ -3,34 +3,34 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Plus, Trash2 } from 'lucide-react'
 
-export interface AlterationRow {
+export interface ChangesExtrasRow {
   id: string
   description: string
   price: string
   isConfirmed: boolean
 }
 
-interface AlterationItem {
+interface ChangeExtraItem {
   id: string
   description: string
   price: number
 }
 
-interface Section3AlterationsProps {
-  onAddToOrder: (item: AlterationItem) => void
+interface Section3ChangesExtrasProps {
+  onAddToOrder: (item: ChangeExtraItem) => void
   onRemoveFromOrder: (id: string) => void
-  rows: AlterationRow[]
-  setRows: React.Dispatch<React.SetStateAction<AlterationRow[]>>
+  rows: ChangesExtrasRow[]
+  setRows: React.Dispatch<React.SetStateAction<ChangesExtrasRow[]>>
 }
 
-export const MIN_ALTERATION_ROWS = 5
-export const MAX_ALTERATION_ROWS = 10
+export const MIN_CHANGES_EXTRAS_ROWS = 5
+export const MAX_CHANGES_EXTRAS_ROWS = 10
 
-export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, setRows }: Section3AlterationsProps) {
-  const canAddMore = rows.length < MAX_ALTERATION_ROWS
-  const canRemove = rows.length > MIN_ALTERATION_ROWS
+export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, setRows }: Section3ChangesExtrasProps) {
+  const canAddMore = rows.length < MAX_CHANGES_EXTRAS_ROWS
+  const canRemove = rows.length > MIN_CHANGES_EXTRAS_ROWS
 
-  const updateRow = (id: string, field: keyof AlterationRow, value: string) => {
+  const updateRow = (id: string, field: keyof ChangesExtrasRow, value: string) => {
     setRows(prev =>
       prev.map(row =>
         row.id === id ? { ...row, [field]: value, isConfirmed: false } : row
@@ -110,7 +110,7 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
             <div className="col-span-6 space-y-1">
               {index === 0 && (
                 <Label htmlFor={`desc-${row.id}`} className="text-sm font-semibold">
-                  Alteration description
+                  Changes/Extras description
                 </Label>
               )}
               <Input
@@ -172,8 +172,8 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
         >
           <Plus className="w-4 h-4 mr-2" />
           Add row
-          {rows.length >= MAX_ALTERATION_ROWS && (
-            <span className="ml-2 text-sm text-muted-foreground">(max {MAX_ALTERATION_ROWS})</span>
+          {rows.length >= MAX_CHANGES_EXTRAS_ROWS && (
+            <span className="ml-2 text-sm text-muted-foreground">(max {MAX_CHANGES_EXTRAS_ROWS})</span>
           )}
         </Button>
 
@@ -184,7 +184,7 @@ export function Section3Alterations({ onAddToOrder, onRemoveFromOrder, rows, set
 
       {/* Instructions */}
       <p className="text-sm text-muted-foreground">
-        * Alteration is added automatically when you finish typing
+        * Change/Extra is added automatically when you finish typing
       </p>
     </div>
   )

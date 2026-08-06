@@ -26,6 +26,14 @@ function sanitizeFilename(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
+const itemTypeLabels: Record<string, string> = {
+  dress: 'Dress',
+  change_extra: 'Changes/Extras',
+  extra: 'Extra',
+  fitting: 'Fitting',
+  custom: 'Custom',
+};
+
 function getImageUrls(imageUrl: string | null): string[] {
   if (!imageUrl) return [];
   if (imageUrl.startsWith('[')) {
@@ -228,7 +236,7 @@ ${activeItems.map((item: any, i: number) => `
 <tbody class="item-group">
 <tr>
   <td>${i + 1}</td>
-  <td>${item.item_type}</td>
+  <td>${itemTypeLabels[item.item_type] || item.item_type}</td>
   <td>${item.description}</td>
   <td>€${Number(item.price || 0).toFixed(2)}</td>
 </tr>
@@ -324,7 +332,7 @@ ${activeItems.map((item: any, i: number) => `
 <tbody class="item-group">
 <tr>
   <td>${i + 1}</td>
-  <td>${item.item_type}</td>
+  <td>${itemTypeLabels[item.item_type] || item.item_type}</td>
   <td>${item.description}</td>
 </tr>
 ${item.image_url ? `<tr><td colspan="3"><div class="item-photos">${getImageUrls(item.image_url).map(u => '<img src="' + u + '" />').join('')}</div></td></tr>` : ''}

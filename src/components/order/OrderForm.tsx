@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Section1ClientInfo } from './Section1ClientInfo'
 import { Section2DressSelect } from './Section2DressSelect'
-import { MIN_ALTERATION_ROWS, Section3Alterations, type AlterationRow } from './Section3Alterations'
+import { MIN_CHANGES_EXTRAS_ROWS, Section3ChangesExtras, type ChangesExtrasRow } from './Section3ChangesExtras'
 import { Section4Extras } from './Section4Extras'
 import { MIN_FITTING_NOTES, Section5Fitting, type FittingSession } from './Section5Fitting'
 import { Section6OrderList, type Payment } from './Section6OrderList'
@@ -13,26 +13,26 @@ import type { Database } from '@/lib/supabase/types'
 
 type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 const CLIENT_INFO_DRAFT_KEY = 'gigafashion-client-info-draft'
-const ALTERATIONS_DRAFT_KEY = 'gigafashion-alterations-draft'
+const CHANGES_EXTRAS_DRAFT_KEY = 'gigafashion-changes-extras-draft'
 const FITTING_DRAFT_KEY = 'gigafashion-fitting-draft'
 
-const createInitialAlterationRows = (): AlterationRow[] =>
-  Array.from({ length: MIN_ALTERATION_ROWS }, () => ({
+const createInitialChangesExtrasRows = (): ChangesExtrasRow[] =>
+  Array.from({ length: MIN_CHANGES_EXTRAS_ROWS }, () => ({
     id: crypto.randomUUID(),
     description: '',
     price: '',
     isConfirmed: false,
   }))
 
-const getInitialAlterationRows = (): AlterationRow[] => {
+const getInitialChangesExtrasRows = (): ChangesExtrasRow[] => {
   try {
-    const savedDraft = window.localStorage.getItem(ALTERATIONS_DRAFT_KEY)
+    const savedDraft = window.localStorage.getItem(CHANGES_EXTRAS_DRAFT_KEY)
     const parsedDraft = savedDraft ? JSON.parse(savedDraft) : null
     return Array.isArray(parsedDraft) && parsedDraft.length > 0
       ? parsedDraft
-      : createInitialAlterationRows()
+      : createInitialChangesExtrasRows()
   } catch {
-    return createInitialAlterationRows()
+    return createInitialChangesExtrasRows()
   }
 }
 
@@ -65,7 +65,7 @@ const getInitialFittingSessions = (): FittingSession[] => {
 
 interface OrderItem {
   id: string
-  type: 'dress' | 'alteration' | 'extra' | 'fitting' | 'custom'
+  type: 'dress' | 'change_extra' | 'extra' | 'fitting' | 'custom'
   description: string
   price: number
   productId?: string
@@ -93,8 +93,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [payments, setPayments] = useState<Payment[]>([])
-  const [alterationRows, setAlterationRows] = useState<AlterationRow[]>(
-    initialOrderNumber || blankOnMount ? createInitialAlterationRows : getInitialAlterationRows
+  const [changesExtrasRows, setChangesExtrasRows] = useState<ChangesExtrasRow[]>(
+    initialOrderNumber || blankOnMount ? createInitialChangesExtrasRows : getInitialChangesExtrasRows
   )
   const [fittingSessions, setFittingSessions] = useState<FittingSession[]>(
     initialOrderNumber || blankOnMount ? createInitialFittingSessions : getInitialFittingSessions
@@ -129,7 +129,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   useEffect(() => {
     if (!blankOnMount || initialOrderNumber) return
     window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
-    window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
+    window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
     window.localStorage.removeItem(FITTING_DRAFT_KEY)
   }, [blankOnMount, initialOrderNumber])
 
@@ -197,8 +197,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
 
   useEffect(() => {
     if (initialOrderNumber) return
-    window.localStorage.setItem(ALTERATIONS_DRAFT_KEY, JSON.stringify(alterationRows))
-  }, [alterationRows, initialOrderNumber])
+    window.localStorage.setItem(CHANGES_EXTRAS_DRAFT_KEY, JSON.stringify(changesExtrasRows))
+  }, [changesExtrasRows, initialOrderNumber])
 
   useEffect(() => {
     if (initialOrderNumber) return
@@ -269,25 +269,25 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           notes: payment.notes || '',
           acceptedBy: payment.accepted_by || '',
         })))
-        const loadedAlterations = loadedItems
-          .filter((item: OrderItem) => item.type === 'alteration')
+        const loadedChangesExtras = loadedItems
+          .filter((item: OrderItem) => item.type === 'change_extra')
           .map((item: OrderItem) => ({
             id: item.id,
             description: item.description,
             price: String(item.price),
             isConfirmed: true,
           }))
-        setAlterationRows(
-          loadedAlterations.length > 0
-            ? loadedAlterations.concat(
-              Array.from({ length: Math.max(0, MIN_ALTERATION_ROWS - loadedAlterations.length) }, () => ({
+        setChangesExtrasRows(
+          loadedChangesExtras.length > 0
+            ? loadedChangesExtras.concat(
+              Array.from({ length: Math.max(0, MIN_CHANGES_EXTRAS_ROWS - loadedChangesExtras.length) }, () => ({
                 id: crypto.randomUUID(),
                 description: '',
                 price: '',
                 isConfirmed: false,
               }))
             )
-            : createInitialAlterationRows()
+            : createInitialChangesExtrasRows()
         )
         setFittingSessions(
           Array.isArray(result.fittingSessions) && result.fittingSessions.length > 0
@@ -308,7 +308,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
 
   const resetToBlankOrder = async () => {
     window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
-    window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
+    window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
     window.localStorage.removeItem(FITTING_DRAFT_KEY)
     setClientInfoData({
       clientName: '',
@@ -321,7 +321,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     setSelectedOccasion(undefined)
     setOrderItems([])
     setPayments([])
-    setAlterationRows(createInitialAlterationRows())
+    setChangesExtrasRows(createInitialChangesExtrasRows())
     setFittingSessions(createInitialFittingSessions())
     setOrderNumber('')
 
@@ -366,11 +366,11 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           notes: payment.notes,
           acceptedBy: payment.acceptedBy,
         }))
-      const alterationItemsFromRows: OrderItem[] = alterationRows
+      const changeExtraItemsFromRows: OrderItem[] = changesExtrasRows
         .filter(row => row.description.trim())
         .map(row => ({
           id: row.id,
-          type: 'alteration',
+          type: 'change_extra',
           description: row.description.trim(),
           price: parseFloat(row.price) || 0,
         }))
@@ -385,11 +385,11 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           }))
       )
       const activeItemsWithoutGeneratedItems = activeItems.filter(
-        item => item.type !== 'alteration' && item.type !== 'fitting'
+        item => item.type !== 'change_extra' && item.type !== 'fitting'
       )
       const itemsToSave = [
         ...activeItemsWithoutGeneratedItems,
-        ...alterationItemsFromRows,
+        ...changeExtraItemsFromRows,
         ...fittingItemsFromSessions,
         ...deletedItems,
       ]
@@ -435,7 +435,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       }
 
       window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
-      window.localStorage.removeItem(ALTERATIONS_DRAFT_KEY)
+      window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
       window.localStorage.removeItem(FITTING_DRAFT_KEY)
       setIsSaving(false)
       if (initialOrderNumber) {
@@ -459,7 +459,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setSelectedOccasion(undefined)
       setOrderItems([])
       setPayments([])
-      setAlterationRows(createInitialAlterationRows())
+      setChangesExtrasRows(createInitialChangesExtrasRows())
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
       if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
@@ -509,22 +509,22 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     setOrderItems(prev => [...prev, orderItem])
   }
   
-  const handleAddAlterationToOrder = (item: {
+  const handleAddChangeExtraToOrder = (item: {
     id: string
     description: string
     price: number
   }) => {
     const orderItem: OrderItem = {
       id: item.id,
-      type: 'alteration',
+      type: 'change_extra',
       description: item.description,
       price: item.price,
     }
     setOrderItems(prev => [...prev, orderItem])
-    console.log('Added alteration to order:', orderItem)
+    console.log('Added change/extra to order:', orderItem)
   }
 
-  const handleRemoveAlterationFromOrder = (id: string) => {
+  const handleRemoveChangeExtraFromOrder = (id: string) => {
     setOrderItems(prev => prev.filter(item => item.id !== id))
   }
   
@@ -642,24 +642,24 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         </div>
       </div>
 
-      {/* Section 3 - Alterations */}
+      {/* Section 3 - Changes/Extras */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(3)}
           className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
         >
-          <span>3. Alterations</span>
+          <span>3. Changes/Extras</span>
           <span>{isExpanded[3] ? '−' : '+'}</span>
         </button>
         <div
           className="p-5"
           style={{ display: isExpanded[3] ? 'block' : 'none' }}
         >
-          <Section3Alterations
-            onAddToOrder={handleAddAlterationToOrder}
-            onRemoveFromOrder={handleRemoveAlterationFromOrder}
-            rows={alterationRows}
-            setRows={setAlterationRows}
+          <Section3ChangesExtras
+            onAddToOrder={handleAddChangeExtraToOrder}
+            onRemoveFromOrder={handleRemoveChangeExtraFromOrder}
+            rows={changesExtrasRows}
+            setRows={setChangesExtrasRows}
           />
         </div>
       </div>
