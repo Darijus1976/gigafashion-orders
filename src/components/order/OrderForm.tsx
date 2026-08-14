@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { Section1ClientInfo } from './Section1ClientInfo'
 import { Section2DressSelect } from './Section2DressSelect'
 import { MIN_CHANGES_EXTRAS_ROWS, Section3ChangesExtras, type ChangesExtrasRow } from './Section3ChangesExtras'
+import { Section31Notes } from './Section31Notes'
 import { Section4Accessories } from './Section4Accessories'
 import { MIN_FITTING_NOTES, Section5Fitting, type FittingSession } from './Section5Fitting'
 import { Section6OrderList, type Payment } from './Section6OrderList'
@@ -14,7 +15,22 @@ import type { Database } from '@/lib/supabase/types'
 type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 const CLIENT_INFO_DRAFT_KEY = 'gigafashion-client-info-draft'
 const CHANGES_EXTRAS_DRAFT_KEY = 'gigafashion-changes-extras-draft'
+const INTERNAL_NOTES_DRAFT_KEY = 'gigafashion-internal-notes-draft'
 const FITTING_DRAFT_KEY = 'gigafashion-fitting-draft'
+
+const getInitialInternalNotes = (): { notes: string; photoUrls: string[] } => {
+  try {
+    const savedDraft = window.localStorage.getItem(INTERNAL_NOTES_DRAFT_KEY)
+    const parsedDraft = savedDraft ? JSON.parse(savedDraft) : null
+    if (parsedDraft && typeof parsedDraft === 'object') {
+      return {
+        notes: typeof parsedDraft.notes === 'string' ? parsedDraft.notes : '',
+        photoUrls: Array.isArray(parsedDraft.photoUrls) ? parsedDraft.photoUrls : [],
+      }
+    }
+  } catch {}
+  return { notes: '', photoUrls: [] }
+}
 
 const createInitialChangesExtrasRows = (): ChangesExtrasRow[] =>
   Array.from({ length: MIN_CHANGES_EXTRAS_ROWS }, () => ({
@@ -94,6 +110,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     1: true,
     2: false,
     3: false,
+    3.1: false,
     4: false,
     5: false,
     6: false,
@@ -104,6 +121,12 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   const [payments, setPayments] = useState<Payment[]>([])
   const [changesExtrasRows, setChangesExtrasRows] = useState<ChangesExtrasRow[]>(
     initialOrderNumber || blankOnMount ? createInitialChangesExtrasRows : getInitialChangesExtrasRows
+  )
+  const [internalNotes, setInternalNotes] = useState<string>(
+    initialOrderNumber || blankOnMount ? '' : getInitialInternalNotes().notes
+  )
+  const [internalPhotoUrls, setInternalPhotoUrls] = useState<string[]>(
+    initialOrderNumber || blankOnMount ? [] : getInitialInternalNotes().photoUrls
   )
   const [fittingSessions, setFittingSessions] = useState<FittingSession[]>(
     initialOrderNumber || blankOnMount ? createInitialFittingSessions : getInitialFittingSessions
@@ -139,6 +162,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     if (!blankOnMount || initialOrderNumber) return
     window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
     window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
+    window.localStorage.removeItem(INTERNAL_NOTES_DRAFT_KEY)
     window.localStorage.removeItem(FITTING_DRAFT_KEY)
   }, [blankOnMount, initialOrderNumber])
 
@@ -159,9 +183,11 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       clientInfoData.phone?.trim() ||
       selectedOccasion ||
       orderItems.some(item => !item.deleted && (item.price || item.description)) ||
-      payments.some(p => p.amount.trim())
+      payments.some(p => p.amount.trim()) ||
+      internalNotes.trim() ||
+      internalPhotoUrls.length > 0
     )
-  }, [clientInfoData, selectedOccasion, orderItems, payments])
+  }, [clientInfoData, selectedOccasion, orderItems, payments, internalNotes, internalPhotoUrls])
 
   useEffect(() => {
     if (!isDirty || justSavedRef.current) return
@@ -208,6 +234,11 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     if (initialOrderNumber) return
     window.localStorage.setItem(CHANGES_EXTRAS_DRAFT_KEY, JSON.stringify(changesExtrasRows))
   }, [changesExtrasRows, initialOrderNumber])
+
+  useEffect(() => {
+    if (initialOrderNumber) return
+    window.localStorage.setItem(INTERNAL_NOTES_DRAFT_KEY, JSON.stringify({ notes: internalNotes, photoUrls: internalPhotoUrls }))
+  }, [internalNotes, internalPhotoUrls, initialOrderNumber])
 
   useEffect(() => {
     if (initialOrderNumber) return
@@ -278,6 +309,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           notes: payment.notes || '',
           acceptedBy: payment.accepted_by || '',
         })))
+        setInternalNotes(order.internal_notes || '')
+        setInternalPhotoUrls(Array.isArray(order.internal_photo_urls) ? order.internal_photo_urls : [])
         const loadedChangesExtras = loadedItems
           .filter((item: OrderItem) => item.type === 'change_extra')
           .map((item: OrderItem) => ({
@@ -320,6 +353,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   const resetToBlankOrder = async () => {
     window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
     window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
+    window.localStorage.removeItem(INTERNAL_NOTES_DRAFT_KEY)
     window.localStorage.removeItem(FITTING_DRAFT_KEY)
     setClientInfoData({
       clientName: '',
@@ -333,6 +367,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     setOrderItems([])
     setPayments([])
     setChangesExtrasRows(createInitialChangesExtrasRows())
+    setInternalNotes('')
+    setInternalPhotoUrls([])
     setFittingSessions(createInitialFittingSessions())
     setOrderNumber('')
 
@@ -426,6 +462,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           items: itemsToSave,
           payments: paymentsToSave,
           fittingSessions,
+          internalNotes,
+          internalPhotoUrls,
           orderId: savedOrderId,
           isExistingOrder: Boolean(initialOrderNumber),
         }),
@@ -472,6 +510,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setOrderItems([])
       setPayments([])
       setChangesExtrasRows(createInitialChangesExtrasRows())
+      setInternalNotes('')
+      setInternalPhotoUrls([])
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
       if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
@@ -674,6 +714,29 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             onRemoveFromOrder={handleRemoveChangeExtraFromOrder}
             rows={changesExtrasRows}
             setRows={setChangesExtrasRows}
+          />
+        </div>
+      </div>
+
+      {/* Section 3.1 - Internal Notes */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <button
+          onClick={() => toggleSection(3.1)}
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+        >
+          <span>3.1. Notes</span>
+          <span>{isExpanded[3.1] ? '−' : '+'}</span>
+        </button>
+        <div
+          className="p-5"
+          style={{ display: isExpanded[3.1] ? 'block' : 'none' }}
+        >
+          <Section31Notes
+            orderNumber={orderNumber}
+            notes={internalNotes}
+            setNotes={setInternalNotes}
+            photoUrls={internalPhotoUrls}
+            setPhotoUrls={setInternalPhotoUrls}
           />
         </div>
       </div>

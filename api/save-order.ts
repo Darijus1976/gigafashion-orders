@@ -78,6 +78,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         total_amount: orderData.totalAmount || 0,
         total_paid: orderData.totalPaid || 0,
         notes: orderData.notes || null,
+        internal_notes: orderData.internalNotes || null,
+        internal_photo_urls: Array.isArray(orderData.internalPhotoUrls) ? orderData.internalPhotoUrls : [],
       };
 
     const orderQuery = orderData.orderId

@@ -17,6 +17,8 @@ export interface Database {
           total_amount: number
           total_paid: number
           notes: string | null
+          internal_notes: string | null
+          internal_photo_urls: string[]
           created_at: string
           updated_at: string
         }

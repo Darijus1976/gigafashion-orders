@@ -229,6 +229,16 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
 ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <span class="note">${order.notes}</span></div>` : ''}
 </div>
 
+${order.internal_notes || (order.internal_photo_urls && order.internal_photo_urls.length > 0) ? `
+<div class="section">
+<h2>Internal Notes</h2>
+${order.internal_notes ? `<div class="field"><span class="field-label">Notes:</span> <span class="note">${order.internal_notes}</span></div>` : ''}
+${order.internal_photo_urls && order.internal_photo_urls.length > 0 ? `
+<div class="photos">
+${order.internal_photo_urls.map((url: string) => `<img src="${url}" alt="Internal note photo" />`).join('')}
+</div>` : ''}
+</div>` : ''}
+
 <div class="section">
 <h2>Order Items</h2>
 <table>
