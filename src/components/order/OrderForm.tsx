@@ -655,10 +655,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 1 - Client Info */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(1)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>1. Client Information</span>
           <span>{isExpanded[1] ? '−' : '+'}</span>
@@ -675,10 +675,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 2 - Dress Selection */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(2)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>2. Dress Selection</span>
           <span>{isExpanded[2] ? '−' : '+'}</span>
@@ -697,10 +697,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 3 - Changes/Extras */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(3)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>3. Changes/Extras</span>
           <span>{isExpanded[3] ? '−' : '+'}</span>
@@ -719,10 +719,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 3.1 - Internal Notes */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(3.1)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>3.1. Notes</span>
           <span>{isExpanded[3.1] ? '−' : '+'}</span>
@@ -742,10 +742,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 4 - Accessories */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(4)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>4. Accessories</span>
           <span>{isExpanded[4] ? '−' : '+'}</span>
@@ -763,10 +763,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 5 - Fitting */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(5)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>5. Fitting</span>
           <span>{isExpanded[5] ? '−' : '+'}</span>
@@ -788,10 +788,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       </div>
 
       {/* Section 6 - Order List */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border-2 border-gray-400 bg-white shadow-sm overflow-hidden">
         <button
           onClick={() => toggleSection(6)}
-          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b border-gray-200"
+          className="flex w-full items-center justify-between p-4 text-left text-lg font-bold text-rose-700 bg-gray-50 border-b-2 border-gray-400"
         >
           <span>6. Order Summary</span>
           <span>{isExpanded[6] ? '−' : '+'}</span>
