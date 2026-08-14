@@ -26,18 +26,15 @@ describe('Section1ClientInfo', () => {
     })
   })
 
-  it('should validate phone format', async () => {
-    const onSubmit = vi.fn()
-    render(<Section1ClientInfo onSubmit={onSubmit} />)
-    
+  it('should accept any phone format', async () => {
+    const onDataChange = vi.fn()
+    render(<Section1ClientInfo onDataChange={onDataChange} />)
+
     const phoneInput = screen.getByLabelText(/telefono numeris/i)
-    fireEvent.change(phoneInput, { target: { value: 'invalid' } })
-    
-    const form = screen.getByRole('form')
-    fireEvent.submit(form)
-    
+    fireEvent.change(phoneInput, { target: { value: 'invalid or any format' } })
+
     await waitFor(() => {
-      expect(screen.getByText(/įveskite teisingą telefono numerį/i)).toBeInTheDocument()
+      expect(onDataChange).toHaveBeenCalledWith(expect.objectContaining({ phone: 'invalid or any format' }))
     })
   })
 

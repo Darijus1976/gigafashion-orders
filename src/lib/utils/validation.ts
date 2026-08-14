@@ -1,8 +1,5 @@
 import { z } from 'zod'
 
-// Phone validation for IE/EU format
-const phoneRegex = /^(\+353|0)[1-9][0-9]{7,8}$/
-
 export const clientInfoSchema = z.object({
   clientName: z
     .string()
@@ -10,7 +7,7 @@ export const clientInfoSchema = z.object({
     .max(100, 'Name cannot exceed 100 characters'),
   phone: z
     .string()
-    .regex(phoneRegex, 'Enter valid phone number (+353 or 08x format)'),
+    .min(1, 'Phone number is required'),
   visitDate: z.string().min(1, 'Select visit date and time'),
   occasion: z.enum([
     'christening',

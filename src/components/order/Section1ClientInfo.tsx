@@ -24,8 +24,7 @@ export function Section1ClientInfo({ defaultValues, onDataChange }: Section1Clie
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone" className="text-base font-semibold">Phone Number <span className="text-rose-600">*</span></Label>
-        <Input id="phone" value={defaultValues?.phone ?? ''} onChange={(e) => handleFieldChange('phone', e.target.value)} placeholder="+353... or 08x..." />
-        <p className="text-sm text-muted-foreground">Format: +353XXXXXXXXX or 08XXXXXXXX</p>
+        <Input id="phone" type="tel" inputMode="tel" value={defaultValues?.phone ?? ''} onChange={(e) => handleFieldChange('phone', e.target.value)} placeholder="Enter phone number" />
       </div>
       <div className="space-y-2">
         <Label htmlFor="visitDate" className="text-base font-semibold">Visit Date & Time <span className="text-rose-600">*</span></Label>
