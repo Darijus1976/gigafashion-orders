@@ -1,13 +1,16 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Camera, ImageIcon, X } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { useRef } from 'react'
 
 export interface ChangesExtrasRow {
   id: string
   description: string
   price: string
   isConfirmed: boolean
+  imageUrls?: string[]
 }
 
 interface ChangeExtraItem {
@@ -17,7 +20,7 @@ interface ChangeExtraItem {
 }
 
 interface Section3ChangesExtrasProps {
-  onAddToOrder: (item: ChangeExtraItem) => void
+  onAddToOrder: (item: ChangeExtraItem & { imageUrls?: string[] }) => void
   onRemoveFromOrder: (id: string) => void
   rows: ChangesExtrasRow[]
   setRows: React.Dispatch<React.SetStateAction<ChangesExtrasRow[]>>
@@ -29,8 +32,102 @@ export const MAX_CHANGES_EXTRAS_ROWS = 10
 export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, setRows }: Section3ChangesExtrasProps) {
   const canAddMore = rows.length < MAX_CHANGES_EXTRAS_ROWS
   const canRemove = rows.length > MIN_CHANGES_EXTRAS_ROWS
+  const fileInputRefs = useRef<Record<string, { gallery: HTMLInputElement | null; camera: HTMLInputElement | null }>>({})
 
-  const updateRow = (id: string, field: keyof ChangesExtrasRow, value: string) => {
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('No canvas context')); return }
+        let { width, height } = img
+        const maxDim = 1920
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = (height / width) * maxDim; width = maxDim }
+          else { width = (width / height) * maxDim; height = maxDim }
+        }
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(blob => {
+          if (blob) resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' }))
+          else reject(new Error('Compression failed'))
+        }, 'image/webp', 0.8)
+      }
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
+  const uploadImage = async (rowId: string, file: File): Promise<string | null> => {
+    if (!file.type.startsWith('image/')) return null
+    try {
+      const compressed = await compressImage(file)
+      const filePath = 'change-extra/' + rowId + '/' + Date.now() + '.webp'
+      const { error: uploadError } = await supabase.storage
+        .from('order-photos')
+        .upload(filePath, compressed, { cacheControl: '3600', upsert: false })
+      if (uploadError) throw uploadError
+      const { data } = supabase.storage.from('order-photos').getPublicUrl(filePath)
+      return data.publicUrl
+    } catch (e) {
+      console.error('Upload error:', e)
+      return null
+    }
+  }
+
+  const addImages = async (rowId: string, files: FileList | null) => {
+    if (!files) return
+    const uploadedUrls: string[] = []
+    for (const file of Array.from(files)) {
+      const url = await uploadImage(rowId, file)
+      if (url) uploadedUrls.push(url)
+    }
+    if (uploadedUrls.length === 0) return
+    setRows(prev =>
+      prev.map(row =>
+        row.id === rowId
+          ? { ...row, imageUrls: [...(row.imageUrls || []), ...uploadedUrls], isConfirmed: false }
+          : row
+      )
+    )
+    const row = rows.find(r => r.id === rowId)
+    if (row && row.description.trim()) {
+      onRemoveFromOrder(rowId)
+      onAddToOrder({
+        id: rowId,
+        description: row.description,
+        price: parseFloat(row.price) || 0,
+        imageUrls: [...(row.imageUrls || []), ...uploadedUrls],
+      })
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, isConfirmed: true } : r))
+    }
+  }
+
+  const removeImage = (rowId: string, url: string) => {
+    setRows(prev =>
+      prev.map(row =>
+        row.id === rowId
+          ? { ...row, imageUrls: (row.imageUrls || []).filter(u => u !== url), isConfirmed: false }
+          : row
+      )
+    )
+    const row = rows.find(r => r.id === rowId)
+    if (row && row.description.trim()) {
+      onRemoveFromOrder(rowId)
+      const remainingUrls = (row.imageUrls || []).filter(u => u !== url)
+      onAddToOrder({
+        id: rowId,
+        description: row.description,
+        price: parseFloat(row.price) || 0,
+        imageUrls: remainingUrls.length > 0 ? remainingUrls : undefined,
+      })
+      setRows(prev => prev.map(r => r.id === rowId ? { ...r, isConfirmed: true } : r))
+    }
+  }
+
+  const updateRow = (id: string, field: keyof Omit<ChangesExtrasRow, 'imageUrls'>, value: string) => {
     setRows(prev =>
       prev.map(row =>
         row.id === id ? { ...row, [field]: value, isConfirmed: false } : row
@@ -48,6 +145,7 @@ export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, s
         id: row.id,
         description: row.description,
         price: price,
+        imageUrls: row.imageUrls,
       })
       setRows(prev =>
         prev.map(r => (r.id === id ? { ...r, isConfirmed: true } : r))
@@ -64,6 +162,7 @@ export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, s
           description: '',
           price: '',
           isConfirmed: false,
+          imageUrls: [],
         },
       ])
     }
@@ -77,7 +176,7 @@ export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, s
       setRows(prev =>
         prev.map(row =>
           row.id === id
-            ? { ...row, description: '', price: '', isConfirmed: false }
+            ? { ...row, description: '', price: '', isConfirmed: false, imageUrls: [] }
             : row
         )
       )
@@ -145,7 +244,25 @@ export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, s
 
             {/* Actions */}
             <div className="col-span-2 flex items-center justify-end gap-1">
-              {(canRemove || row.description || row.price || row.isConfirmed) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRefs.current[row.id]?.gallery?.click()}
+                title="Add from gallery"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRefs.current[row.id]?.camera?.click()}
+                title="Take photo"
+              >
+                <Camera className="w-4 h-4" />
+              </Button>
+              {(canRemove || row.description || row.price || row.isConfirmed || (row.imageUrls && row.imageUrls.length > 0)) && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -156,7 +273,46 @@ export function Section3ChangesExtras({ onAddToOrder, onRemoveFromOrder, rows, s
                   <Trash2 className="w-4 h-4" />
                 </Button>
               )}
+              <input
+                ref={(el) => { fileInputRefs.current[row.id] = { ...(fileInputRefs.current[row.id] || {}), gallery: el } as { gallery: HTMLInputElement | null; camera: HTMLInputElement | null } }}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => { addImages(row.id, e.target.files); e.target.value = '' }}
+              />
+              <input
+                ref={(el) => { fileInputRefs.current[row.id] = { ...(fileInputRefs.current[row.id] || {}), camera: el } as { gallery: HTMLInputElement | null; camera: HTMLInputElement | null } }}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => { addImages(row.id, e.target.files); e.target.value = '' }}
+              />
             </div>
+
+            {/* Photos preview */}
+            {row.imageUrls && row.imageUrls.length > 0 && (
+              <div className="col-span-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {row.imageUrls.map((url) => (
+                    <div key={url} className="relative">
+                      <a href={url} target="_blank" rel="noopener noreferrer">
+                        <img src={url} alt={row.description} className="w-full max-h-[500px] object-contain rounded-lg border bg-white" />
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-1 right-1 bg-white/80 hover:bg-white"
+                        onClick={() => removeImage(row.id, url)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

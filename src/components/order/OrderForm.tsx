@@ -22,6 +22,7 @@ const createInitialChangesExtrasRows = (): ChangesExtrasRow[] =>
     description: '',
     price: '',
     isConfirmed: false,
+    imageUrls: [],
   }))
 
 const getInitialChangesExtrasRows = (): ChangesExtrasRow[] => {
@@ -34,6 +35,14 @@ const getInitialChangesExtrasRows = (): ChangesExtrasRow[] => {
   } catch {
     return createInitialChangesExtrasRows()
   }
+}
+
+const parseImageUrl = (imageUrl?: string): string[] => {
+  if (!imageUrl) return []
+  if (imageUrl.startsWith('[')) {
+    try { return JSON.parse(imageUrl) } catch { return [imageUrl] }
+  }
+  return [imageUrl]
 }
 
 const createInitialFittingSessions = (): FittingSession[] => [
@@ -276,6 +285,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             description: item.description,
             price: String(item.price),
             isConfirmed: true,
+            imageUrls: parseImageUrl(item.imageUrl),
           }))
         setChangesExtrasRows(
           loadedChangesExtras.length > 0
@@ -285,6 +295,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
                 description: '',
                 price: '',
                 isConfirmed: false,
+                imageUrls: [],
               }))
             )
             : createInitialChangesExtrasRows()
@@ -373,6 +384,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           type: 'change_extra',
           description: row.description.trim(),
           price: parseFloat(row.price) || 0,
+          imageUrl: row.imageUrls && row.imageUrls.length > 0 ? JSON.stringify(row.imageUrls) : undefined,
         }))
       const fittingItemsFromSessions: OrderItem[] = fittingSessions.flatMap(session =>
         session.notes
@@ -513,12 +525,14 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     id: string
     description: string
     price: number
+    imageUrls?: string[]
   }) => {
     const orderItem: OrderItem = {
       id: item.id,
       type: 'change_extra',
       description: item.description,
       price: item.price,
+      imageUrl: item.imageUrls && item.imageUrls.length > 0 ? JSON.stringify(item.imageUrls) : undefined,
     }
     setOrderItems(prev => [...prev, orderItem])
     console.log('Added change/extra to order:', orderItem)
