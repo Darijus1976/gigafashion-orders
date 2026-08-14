@@ -74,6 +74,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         occasion_custom: orderData.occasionCustom || null,
         event_date: orderData.eventDate || null,
         dress_type: orderData.dressType,
+        dress_colour: orderData.dressColour || null,
+        dress_colour_other: orderData.dressColourOther || null,
         staff_member: orderData.staffMember,
         total_amount: orderData.totalAmount || 0,
         total_paid: orderData.totalPaid || 0,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Section1ClientInfo } from './Section1ClientInfo'
-import { Section2DressSelect } from './Section2DressSelect'
+import { Section2DressSelect, type DressColour } from './Section2DressSelect'
 import { MIN_CHANGES_EXTRAS_ROWS, Section3ChangesExtras, type ChangesExtrasRow } from './Section3ChangesExtras'
 import { Section31Notes } from './Section31Notes'
 import { Section4Accessories } from './Section4Accessories'
@@ -17,6 +17,21 @@ const CLIENT_INFO_DRAFT_KEY = 'gigafashion-client-info-draft'
 const CHANGES_EXTRAS_DRAFT_KEY = 'gigafashion-changes-extras-draft'
 const INTERNAL_NOTES_DRAFT_KEY = 'gigafashion-internal-notes-draft'
 const FITTING_DRAFT_KEY = 'gigafashion-fitting-draft'
+const DRESS_COLOUR_DRAFT_KEY = 'gigafashion-dress-colour-draft'
+
+const getInitialDressColour = (): { dressColour: DressColour | ''; dressColourOther: string } => {
+  try {
+    const savedDraft = window.localStorage.getItem(DRESS_COLOUR_DRAFT_KEY)
+    const parsedDraft = savedDraft ? JSON.parse(savedDraft) : null
+    if (parsedDraft && typeof parsedDraft === 'object') {
+      return {
+        dressColour: parsedDraft.dressColour || '',
+        dressColourOther: typeof parsedDraft.dressColourOther === 'string' ? parsedDraft.dressColourOther : '',
+      }
+    }
+  } catch {}
+  return { dressColour: '', dressColourOther: '' }
+}
 
 const getInitialInternalNotes = (): { notes: string; photoUrls: string[] } => {
   try {
@@ -118,6 +133,12 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | undefined>()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
+  const [dressColour, setDressColour] = useState<DressColour | ''>(
+    initialOrderNumber || blankOnMount ? '' : getInitialDressColour().dressColour
+  )
+  const [dressColourOther, setDressColourOther] = useState<string>(
+    initialOrderNumber || blankOnMount ? '' : getInitialDressColour().dressColourOther
+  )
   const [payments, setPayments] = useState<Payment[]>([])
   const [changesExtrasRows, setChangesExtrasRows] = useState<ChangesExtrasRow[]>(
     initialOrderNumber || blankOnMount ? createInitialChangesExtrasRows : getInitialChangesExtrasRows
@@ -164,6 +185,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
     window.localStorage.removeItem(INTERNAL_NOTES_DRAFT_KEY)
     window.localStorage.removeItem(FITTING_DRAFT_KEY)
+    window.localStorage.removeItem(DRESS_COLOUR_DRAFT_KEY)
   }, [blankOnMount, initialOrderNumber])
 
   // Fetch order number on mount if not provided
@@ -246,6 +268,11 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
   }, [fittingSessions, initialOrderNumber])
 
   useEffect(() => {
+    if (initialOrderNumber) return
+    window.localStorage.setItem(DRESS_COLOUR_DRAFT_KEY, JSON.stringify({ dressColour, dressColourOther }))
+  }, [dressColour, dressColourOther, initialOrderNumber])
+
+  useEffect(() => {
     if (!initialOrderNumber) return
 
     const loadExistingOrder = async () => {
@@ -289,6 +316,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           eventDate: order.event_date || '',
         })
         setSelectedOccasion(order.occasion)
+        setDressColour(order.dress_colour || '')
+        setDressColourOther(order.dress_colour_other || '')
         const loadedItems = (Array.isArray(result.items) ? result.items : []).map((item: any) => ({
             id: item.id,
             type: item.item_type,
@@ -355,6 +384,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
     window.localStorage.removeItem(INTERNAL_NOTES_DRAFT_KEY)
     window.localStorage.removeItem(FITTING_DRAFT_KEY)
+    window.localStorage.removeItem(DRESS_COLOUR_DRAFT_KEY)
     setClientInfoData({
       clientName: '',
       phone: '',
@@ -365,6 +395,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     })
     setSelectedOccasion(undefined)
     setOrderItems([])
+    setDressColour('')
+    setDressColourOther('')
     setPayments([])
     setChangesExtrasRows(createInitialChangesExtrasRows())
     setInternalNotes('')
@@ -398,6 +430,15 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
         setIsExpanded(prev => ({ ...prev, 1: true }))
         const firstIssue = clientInfoResult.error.issues[0]
         throw new Error(firstIssue?.message || 'Please complete client information before saving')
+      }
+
+      if (!dressColour) {
+        setIsExpanded(prev => ({ ...prev, 2: true }))
+        throw new Error('Select the dress colour before saving')
+      }
+      if (dressColour === 'other' && !dressColourOther.trim()) {
+        setIsExpanded(prev => ({ ...prev, 2: true }))
+        throw new Error('Enter the custom dress colour before saving')
       }
 
       const activeItems = orderItems.filter(item => !item.deleted)
@@ -456,6 +497,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           occasionCustom: clientInfoResult.data.occasionCustom,
           eventDate: clientInfoResult.data.eventDate,
           dressType: primaryDress?.type === 'custom' ? 'custom' : 'catalogue',
+          dressColour,
+          dressColourOther: dressColour === 'other' ? dressColourOther.trim() : '',
           staffMember: data.staffMember,
           totalAmount,
           totalPaid: paymentsToSave.reduce((sum, payment) => sum + payment.amount, 0),
@@ -487,6 +530,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       window.localStorage.removeItem(CLIENT_INFO_DRAFT_KEY)
       window.localStorage.removeItem(CHANGES_EXTRAS_DRAFT_KEY)
       window.localStorage.removeItem(FITTING_DRAFT_KEY)
+      window.localStorage.removeItem(DRESS_COLOUR_DRAFT_KEY)
       setIsSaving(false)
       if (initialOrderNumber) {
         if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
@@ -508,6 +552,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       })
       setSelectedOccasion(undefined)
       setOrderItems([])
+      setDressColour('')
+      setDressColourOther('')
       setPayments([])
       setChangesExtrasRows(createInitialChangesExtrasRows())
       setInternalNotes('')
@@ -693,6 +739,10 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
             onAddToOrder={handleAddDressToOrder}
             orderItems={orderItems}
             onRemoveItem={(id) => setOrderItems(prev => prev.filter(item => item.id !== id))}
+            dressColour={dressColour}
+            onDressColourChange={setDressColour}
+            dressColourOther={dressColourOther}
+            onDressColourOtherChange={setDressColourOther}
           />
         </div>
       </div>

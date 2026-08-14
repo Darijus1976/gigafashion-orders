@@ -12,6 +12,8 @@ export interface Database {
           occasion_custom: string | null
           event_date: string | null
           dress_type: 'catalogue' | 'custom'
+          dress_colour: 'white' | 'off_white' | 'ivory' | 'other' | null
+          dress_colour_other: string | null
           status: 'new' | 'in_progress' | 'fitted' | 'completed' | 'collected'
           staff_member: string
           total_amount: number

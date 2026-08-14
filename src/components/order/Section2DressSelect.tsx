@@ -13,6 +13,14 @@ type Product = Database['public']['Tables']['products']['Row']
 type Occasion = Database['public']['Tables']['orders']['Row']['occasion']
 
 type DressSelectionMode = 'catalogue' | 'custom'
+export type DressColour = 'white' | 'off_white' | 'ivory' | 'other'
+
+export const dressColourOptions: { value: DressColour; label: string }[] = [
+  { value: 'white', label: 'White' },
+  { value: 'off_white', label: 'Off-white' },
+  { value: 'ivory', label: 'Ivory' },
+  { value: 'other', label: 'Other' },
+]
 
 interface DressSelectionItem {
   id: string
@@ -41,9 +49,22 @@ interface Section2DressSelectProps {
   onAddToOrder: (item: DressSelectionItem) => void
   orderItems?: OrderItem[]
   onRemoveItem?: (id: string) => void
+  dressColour?: DressColour | ''
+  onDressColourChange?: (colour: DressColour) => void
+  dressColourOther?: string
+  onDressColourOtherChange?: (value: string) => void
 }
 
-export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], onRemoveItem }: Section2DressSelectProps) {
+export function Section2DressSelect({
+  occasion,
+  onAddToOrder,
+  orderItems = [],
+  onRemoveItem,
+  dressColour = '',
+  onDressColourChange,
+  dressColourOther = '',
+  onDressColourOtherChange,
+}: Section2DressSelectProps) {
   const [selectedMode, setSelectedMode] = useState<DressSelectionMode | null>(null)
   const [customDescription, setCustomDescription] = useState('')
   const [customPrice, setCustomPrice] = useState('')
@@ -220,6 +241,36 @@ export function Section2DressSelect({ occasion, onAddToOrder, orderItems = [], o
           </div>
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label className="text-base font-semibold">
+          Colour <span className="text-rose-600">*</span>
+        </Label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {dressColourOptions.map((option) => (
+            <Card
+              key={option.value}
+              className={`cursor-pointer transition-all text-center ${
+                dressColour === option.value
+                  ? 'border-rose-500 border-2 bg-rose-50'
+                  : 'hover:border-rose-300'
+              }`}
+              onClick={() => onDressColourChange?.(option.value)}
+            >
+              <CardContent className="p-3">
+                <p className="font-medium text-base">{option.label}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {dressColour === 'other' && (
+          <Input
+            placeholder="Enter colour..."
+            value={dressColourOther}
+            onChange={(e) => onDressColourOtherChange?.(e.target.value)}
+          />
+        )}
+      </div>
 
       {!hasSelectedMode && (
         <div className="grid grid-cols-2 gap-4">

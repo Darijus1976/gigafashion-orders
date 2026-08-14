@@ -34,6 +34,21 @@ const itemTypeLabels: Record<string, string> = {
   custom: 'Custom',
 };
 
+const dressColourLabels: Record<string, string> = {
+  white: 'White',
+  off_white: 'Off-white',
+  ivory: 'Ivory',
+  other: 'Other',
+};
+
+function formatDressColour(order: any): string {
+  if (!order.dress_colour) return '';
+  const label = dressColourLabels[order.dress_colour] || order.dress_colour;
+  return order.dress_colour === 'other' && order.dress_colour_other
+    ? `${label} (${order.dress_colour_other})`
+    : label;
+}
+
 function getImageUrls(imageUrl: string | null): string[] {
   if (!imageUrl) return [];
   if (imageUrl.startsWith('[')) {
@@ -224,6 +239,7 @@ function buildFullPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): strin
 <div class="field"><span class="field-label">Occasion:</span> ${occasionLabels[order.occasion] || order.occasion}${order.occasion_custom ? ` (${order.occasion_custom})` : ''}</div>
 <div class="field"><span class="field-label">Event Date:</span> ${order.event_date || ''}</div>
 <div class="field"><span class="field-label">Dress Type:</span> ${order.dress_type === 'custom' ? 'Custom' : 'Catalogue'}</div>
+<div class="field"><span class="field-label">Dress Colour:</span> ${formatDressColour(order)}</div>
 <div class="field"><span class="field-label">Status:</span> ${order.status}</div>
 <div class="field"><span class="field-label">Staff Member:</span> ${order.staff_member}</div>
 ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> <span class="note">${order.notes}</span></div>` : ''}
@@ -331,6 +347,7 @@ function buildClientPdfHtml(data: Awaited<ReturnType<typeof getOrderData>>): str
 <div class="field"><span class="field-label">Occasion:</span> ${occasionLabels[order.occasion] || order.occasion}${order.occasion_custom ? ` (${order.occasion_custom})` : ''}</div>
 <div class="field"><span class="field-label">Event Date:</span> ${order.event_date || ''}</div>
 <div class="field"><span class="field-label">Dress Type:</span> ${order.dress_type === 'custom' ? 'Custom' : 'Catalogue'}</div>
+<div class="field"><span class="field-label">Dress Colour:</span> ${formatDressColour(order)}</div>
 <div class="field"><span class="field-label">Status:</span> ${order.status}</div>
 <div class="field"><span class="field-label">Staff Member:</span> ${order.staff_member}</div>
 ${order.notes ? `<div class="field"><span class="field-label">Notes:</span> ${order.notes}</div>` : ''}
