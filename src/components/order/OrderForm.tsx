@@ -588,6 +588,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     price: number
     productId?: string
     imageUrl?: string
+    imageUrls?: string[]
   }) => {
     const orderItem: OrderItem = {
       id: item.id,
@@ -595,7 +596,7 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       description: item.description,
       price: item.price,
       productId: item.productId,
-      imageUrl: item.imageUrl,
+      imageUrl: item.imageUrls && item.imageUrls.length > 0 ? JSON.stringify(item.imageUrls) : item.imageUrl,
     }
     setOrderItems(prev => [...prev, orderItem])
     console.log('Added accessory to order:', orderItem)
