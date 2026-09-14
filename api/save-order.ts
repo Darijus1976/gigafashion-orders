@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
@@ -128,117 +129,170 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const { error: deleteItemsError } = await supabase
-      .from('order_items')
-      .delete()
-      .eq('order_id', order.id);
+    // Upsert order items first, then delete any that are no longer present.
+    // This prevents data loss if the upsert fails.
+    if (Array.isArray(orderData.items)) {
+      if (orderData.items.length > 0) {
+        const itemsToInsert = orderData.items.map((item: any, index: number) => ({
+          id: item.id && typeof item.id === 'string' ? item.id : randomUUID(),
+          order_id: order.id,
+          item_type: item.type,
+          description: item.description,
+          price: item.price || 0,
+          product_id: item.productId || null,
+          image_url: item.imageUrl || null,
+          sort_order: index,
+          deleted: item.deleted || false,
+          deleted_at: item.deletedAt || null,
+          deleted_by: item.deletedBy || null,
+        }));
 
-    if (deleteItemsError) {
-      console.error('Error replacing order items:', deleteItemsError);
-      return res.status(500).json({
-        error: 'Failed to replace order items',
-        details: deleteItemsError.message,
-      });
-    }
+        const { error: upsertItemsError } = await supabase
+          .from('order_items')
+          .upsert(itemsToInsert, { onConflict: 'id' });
 
-    // Insert order items
-    if (orderData.items && orderData.items.length > 0) {
-      const itemsToInsert = orderData.items.map((item: any, index: number) => ({
-        order_id: order.id,
-        item_type: item.type,
-        description: item.description,
-        price: item.price || 0,
-        product_id: item.productId || null,
-        image_url: item.imageUrl || null,
-        sort_order: index,
-        deleted: item.deleted || false,
-        deleted_at: item.deletedAt || null,
-        deleted_by: item.deletedBy || null,
-      }));
+        if (upsertItemsError) {
+          console.error('Error upserting order items:', upsertItemsError);
+          return res.status(500).json({
+            error: 'Failed to save order items',
+            details: upsertItemsError.message,
+          });
+        }
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(itemsToInsert);
+        const newItemIds = itemsToInsert.map((item: any) => item.id);
+        const { error: deleteOldItemsError } = await supabase
+          .from('order_items')
+          .delete()
+          .eq('order_id', order.id)
+          .not('id', 'in', newItemIds);
 
-      if (itemsError) {
-        console.error('Error creating order items:', itemsError);
-        return res.status(500).json({
-          error: 'Failed to create order items',
-          details: itemsError.message,
-        });
+        if (deleteOldItemsError) {
+          console.error('Error deleting old order items:', deleteOldItemsError);
+          return res.status(500).json({
+            error: 'Failed to clean up old order items',
+            details: deleteOldItemsError.message,
+          });
+        }
+      } else {
+        const { error: deleteAllItemsError } = await supabase
+          .from('order_items')
+          .delete()
+          .eq('order_id', order.id);
+
+        if (deleteAllItemsError) {
+          console.error('Error deleting order items:', deleteAllItemsError);
+          return res.status(500).json({
+            error: 'Failed to delete order items',
+            details: deleteAllItemsError.message,
+          });
+        }
       }
     }
 
-    const { error: deletePaymentsError } = await supabase
-      .from('payments')
-      .delete()
-      .eq('order_id', order.id);
+    // Upsert payments first, then delete any that are no longer present.
+    if (Array.isArray(orderData.payments)) {
+      if (orderData.payments.length > 0) {
+        const paymentsToInsert = orderData.payments.map((payment: any) => ({
+          id: payment.id && typeof payment.id === 'string' ? payment.id : randomUUID(),
+          order_id: order.id,
+          amount: payment.amount,
+          method: payment.method,
+          payment_date: payment.paymentDate || new Date().toISOString().split('T')[0],
+          notes: payment.notes || null,
+          accepted_by: payment.acceptedBy || null,
+        }));
 
-    if (deletePaymentsError) {
-      console.error('Error replacing payments:', deletePaymentsError);
-      return res.status(500).json({
-        error: 'Failed to replace payments',
-        details: deletePaymentsError.message,
-      });
-    }
+        const { error: upsertPaymentsError } = await supabase
+          .from('payments')
+          .upsert(paymentsToInsert, { onConflict: 'id' });
 
-    // Insert payments
-    if (orderData.payments && orderData.payments.length > 0) {
-      const paymentsToInsert = orderData.payments.map((payment: any) => ({
-        order_id: order.id,
-        amount: payment.amount,
-        method: payment.method,
-        payment_date: payment.paymentDate || new Date().toISOString().split('T')[0],
-        notes: payment.notes || null,
-        accepted_by: payment.acceptedBy || null,
-      }));
+        if (upsertPaymentsError) {
+          console.error('Error upserting payments:', upsertPaymentsError);
+          return res.status(500).json({
+            error: 'Failed to save payments',
+            details: upsertPaymentsError.message,
+          });
+        }
 
-      const { error: paymentsError } = await supabase
-        .from('payments')
-        .insert(paymentsToInsert);
+        const newPaymentIds = paymentsToInsert.map((p: any) => p.id);
+        const { error: deleteOldPaymentsError } = await supabase
+          .from('payments')
+          .delete()
+          .eq('order_id', order.id)
+          .not('id', 'in', newPaymentIds);
 
-      if (paymentsError) {
-        console.error('Error creating payments:', paymentsError);
-        return res.status(500).json({
-          error: 'Failed to create payments',
-          details: paymentsError.message,
-        });
+        if (deleteOldPaymentsError) {
+          console.error('Error deleting old payments:', deleteOldPaymentsError);
+          return res.status(500).json({
+            error: 'Failed to clean up old payments',
+            details: deleteOldPaymentsError.message,
+          });
+        }
+      } else {
+        const { error: deleteAllPaymentsError } = await supabase
+          .from('payments')
+          .delete()
+          .eq('order_id', order.id);
+
+        if (deleteAllPaymentsError) {
+          console.error('Error deleting payments:', deleteAllPaymentsError);
+          return res.status(500).json({
+            error: 'Failed to delete payments',
+            details: deleteAllPaymentsError.message,
+          });
+        }
       }
     }
 
+    // Upsert fitting sessions first, then delete any that are no longer present.
     if (Array.isArray(orderData.fittingSessions)) {
-      const fittingRows = orderData.fittingSessions.map((session: any, index: number) => ({
-        order_id: order.id,
-        session_key: session.id,
-        fitting_date: session.date || new Date().toISOString().split('T')[0],
-        notes: Array.isArray(session.notes) ? session.notes : [],
-        photo_urls: Array.isArray(session.photoUrls) ? session.photoUrls : [],
-        sort_order: index,
-      }));
+      if (orderData.fittingSessions.length > 0) {
+        const fittingRows = orderData.fittingSessions.map((session: any, index: number) => ({
+          order_id: order.id,
+          session_key: session.id && typeof session.id === 'string' ? session.id : randomUUID(),
+          fitting_date: session.date || new Date().toISOString().split('T')[0],
+          notes: Array.isArray(session.notes) ? session.notes : [],
+          photo_urls: Array.isArray(session.photoUrls) ? session.photoUrls : [],
+          sort_order: index,
+        }));
 
-      const { error: deleteFittingError } = await supabase
-        .from('fitting_sessions')
-        .delete()
-        .eq('order_id', order.id);
-
-      if (deleteFittingError) {
-        console.error('Error replacing fitting sessions:', deleteFittingError);
-        return res.status(500).json({
-          error: 'Failed to replace fitting sessions',
-          details: deleteFittingError.message,
-        });
-      }
-
-      if (fittingRows.length > 0) {
-        const { error: fittingError } = await supabase
+        const { error: upsertFittingError } = await supabase
           .from('fitting_sessions')
-          .insert(fittingRows);
+          .upsert(fittingRows, { onConflict: 'session_key' });
 
-        if (fittingError) {
-          console.error('Error saving fitting sessions:', fittingError);
+        if (upsertFittingError) {
+          console.error('Error upserting fitting sessions:', upsertFittingError);
           return res.status(500).json({
             error: 'Failed to save fitting sessions',
-            details: fittingError.message,
+            details: upsertFittingError.message,
+          });
+        }
+
+        const newSessionKeys = fittingRows.map((s: any) => s.session_key);
+        const { error: deleteOldFittingError } = await supabase
+          .from('fitting_sessions')
+          .delete()
+          .eq('order_id', order.id)
+          .not('session_key', 'in', newSessionKeys);
+
+        if (deleteOldFittingError) {
+          console.error('Error deleting old fitting sessions:', deleteOldFittingError);
+          return res.status(500).json({
+            error: 'Failed to clean up old fitting sessions',
+            details: deleteOldFittingError.message,
+          });
+        }
+      } else {
+        const { error: deleteAllFittingError } = await supabase
+          .from('fitting_sessions')
+          .delete()
+          .eq('order_id', order.id);
+
+        if (deleteAllFittingError) {
+          console.error('Error deleting fitting sessions:', deleteAllFittingError);
+          return res.status(500).json({
+            error: 'Failed to delete fitting sessions',
+            details: deleteAllFittingError.message,
           });
         }
       }
