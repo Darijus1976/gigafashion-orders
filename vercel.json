@@ -3,6 +3,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
+    "api/save-order.ts": {
+      "maxDuration": 15
+    },
     "api/generate-pdf.ts": {
       "maxDuration": 60
     }

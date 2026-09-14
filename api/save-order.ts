@@ -33,7 +33,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey);
-    const orderData = req.body;
+    let orderData = req.body;
+
+    if (Buffer.isBuffer(orderData)) {
+      orderData = JSON.parse(orderData.toString('utf8'));
+    } else if (typeof orderData === 'string') {
+      orderData = JSON.parse(orderData);
+    }
+
+    if (!orderData || typeof orderData !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    console.log('save-order body keys:', Object.keys(orderData));
+
     let orderNumberToSave = orderData.orderNumber;
 
     if (!orderData.orderId && !orderData.isExistingOrder) {
@@ -55,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const latestParsed = latestOrders?.[0]?.order_number
         ? parseOrderNumber(latestOrders[0].order_number)
         : null;
-      const requestedParsed = parseOrderNumber(orderNumberToSave);
+      const requestedParsed = orderNumberToSave ? parseOrderNumber(orderNumberToSave) : null;
       const latestSequence = latestParsed?.year === currentYear ? latestParsed.sequence : 0;
       const requestedSequence = requestedParsed?.year === currentYear ? requestedParsed.sequence : 0;
 
@@ -65,7 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     }
 
-    const orderPayload = {
+    const orderPayload: any = {
         order_number: orderNumberToSave,
         client_name: orderData.clientName,
         phone: orderData.phone,
@@ -74,8 +87,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         occasion_custom: orderData.occasionCustom || null,
         event_date: orderData.eventDate || null,
         dress_type: orderData.dressType,
-        dress_colour: orderData.dressColour || null,
-        dress_colour_other: orderData.dressColourOther || null,
         staff_member: orderData.staffMember,
         total_amount: orderData.totalAmount || 0,
         total_paid: orderData.totalPaid || 0,
@@ -83,6 +94,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         internal_notes: orderData.internalNotes || null,
         internal_photo_urls: Array.isArray(orderData.internalPhotoUrls) ? orderData.internalPhotoUrls : [],
       };
+
+    if (orderData.dressColour) {
+      orderPayload.dress_colour = orderData.dressColour;
+      orderPayload.dress_colour_other = orderData.dressColour === 'other' && orderData.dressColourOther
+        ? orderData.dressColourOther
+        : null;
+    }
 
     const orderQuery = orderData.orderId
       ? supabase
