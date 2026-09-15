@@ -129,37 +129,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Upsert order items first, then delete any that are no longer present.
-    // This prevents data loss if the upsert fails.
+    // Insert new order items first, then delete the old ones.
+    // This prevents data loss if the insert fails.
     if (Array.isArray(orderData.items)) {
       if (orderData.items.length > 0) {
-        const itemsToInsert = orderData.items.map((item: any, index: number) => ({
-          id: item.id && typeof item.id === 'string' ? item.id : randomUUID(),
-          order_id: order.id,
-          item_type: item.type,
-          description: item.description,
-          price: item.price || 0,
-          product_id: item.productId || null,
-          image_url: item.imageUrl || null,
-          sort_order: index,
-          deleted: item.deleted || false,
-          deleted_at: item.deletedAt || null,
-          deleted_by: item.deletedBy || null,
-        }));
-
-        const { error: upsertItemsError } = await supabase
-          .from('order_items')
-          .upsert(itemsToInsert, { onConflict: 'id' });
-
-        if (upsertItemsError) {
-          console.error('Error upserting order items:', upsertItemsError);
-          return res.status(500).json({
-            error: 'Failed to save order items',
-            details: upsertItemsError.message,
-          });
-        }
-
-        const newItemIds = itemsToInsert.map((item: any) => item.id);
         const { data: existingItemIds, error: fetchItemIdsError } = await supabase
           .from('order_items')
           .select('id')
@@ -173,15 +146,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        const idsToDelete = (existingItemIds || [])
-          .filter((row: any) => !newItemIds.includes(row.id))
-          .map((row: any) => row.id);
+        const oldItemIds = (existingItemIds || []).map((row: any) => row.id);
 
-        if (idsToDelete.length > 0) {
+        const itemsToInsert = orderData.items.map((item: any, index: number) => ({
+          order_id: order.id,
+          item_type: item.type,
+          description: item.description,
+          price: item.price || 0,
+          product_id: item.productId || null,
+          image_url: item.imageUrl || null,
+          sort_order: index,
+          deleted: item.deleted || false,
+          deleted_at: item.deletedAt || null,
+          deleted_by: item.deletedBy || null,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) {
+          console.error('Error creating order items:', itemsError);
+          return res.status(500).json({
+            error: 'Failed to create order items',
+            details: itemsError.message,
+          });
+        }
+
+        if (oldItemIds.length > 0) {
           const { error: deleteOldItemsError } = await supabase
             .from('order_items')
             .delete()
-            .in('id', idsToDelete);
+            .in('id', oldItemIds);
 
           if (deleteOldItemsError) {
             console.error('Error deleting old order items:', deleteOldItemsError);
@@ -207,32 +203,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Upsert payments first, then delete any that are no longer present.
+    // Insert new payments first, then delete the old ones.
     if (Array.isArray(orderData.payments)) {
       if (orderData.payments.length > 0) {
-        const paymentsToInsert = orderData.payments.map((payment: any) => ({
-          id: payment.id && typeof payment.id === 'string' ? payment.id : randomUUID(),
-          order_id: order.id,
-          amount: payment.amount,
-          method: payment.method,
-          payment_date: payment.paymentDate || new Date().toISOString().split('T')[0],
-          notes: payment.notes || null,
-          accepted_by: payment.acceptedBy || null,
-        }));
-
-        const { error: upsertPaymentsError } = await supabase
-          .from('payments')
-          .upsert(paymentsToInsert, { onConflict: 'id' });
-
-        if (upsertPaymentsError) {
-          console.error('Error upserting payments:', upsertPaymentsError);
-          return res.status(500).json({
-            error: 'Failed to save payments',
-            details: upsertPaymentsError.message,
-          });
-        }
-
-        const newPaymentIds = paymentsToInsert.map((p: any) => p.id);
         const { data: existingPaymentIds, error: fetchPaymentIdsError } = await supabase
           .from('payments')
           .select('id')
@@ -246,15 +219,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        const paymentIdsToDelete = (existingPaymentIds || [])
-          .filter((row: any) => !newPaymentIds.includes(row.id))
-          .map((row: any) => row.id);
+        const oldPaymentIds = (existingPaymentIds || []).map((row: any) => row.id);
 
-        if (paymentIdsToDelete.length > 0) {
+        const paymentsToInsert = orderData.payments.map((payment: any) => ({
+          order_id: order.id,
+          amount: payment.amount,
+          method: payment.method,
+          payment_date: payment.paymentDate || new Date().toISOString().split('T')[0],
+          notes: payment.notes || null,
+          accepted_by: payment.acceptedBy || null,
+        }));
+
+        const { error: paymentsError } = await supabase
+          .from('payments')
+          .insert(paymentsToInsert);
+
+        if (paymentsError) {
+          console.error('Error creating payments:', paymentsError);
+          return res.status(500).json({
+            error: 'Failed to create payments',
+            details: paymentsError.message,
+          });
+        }
+
+        if (oldPaymentIds.length > 0) {
           const { error: deleteOldPaymentsError } = await supabase
             .from('payments')
             .delete()
-            .in('id', paymentIdsToDelete);
+            .in('id', oldPaymentIds);
 
           if (deleteOldPaymentsError) {
             console.error('Error deleting old payments:', deleteOldPaymentsError);
@@ -280,31 +272,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Upsert fitting sessions first, then delete any that are no longer present.
+    // Insert new fitting sessions first, then delete the old ones.
     if (Array.isArray(orderData.fittingSessions)) {
       if (orderData.fittingSessions.length > 0) {
-        const fittingRows = orderData.fittingSessions.map((session: any, index: number) => ({
-          order_id: order.id,
-          session_key: session.id && typeof session.id === 'string' ? session.id : randomUUID(),
-          fitting_date: session.date || new Date().toISOString().split('T')[0],
-          notes: Array.isArray(session.notes) ? session.notes : [],
-          photo_urls: Array.isArray(session.photoUrls) ? session.photoUrls : [],
-          sort_order: index,
-        }));
-
-        const { error: upsertFittingError } = await supabase
-          .from('fitting_sessions')
-          .upsert(fittingRows, { onConflict: 'session_key' });
-
-        if (upsertFittingError) {
-          console.error('Error upserting fitting sessions:', upsertFittingError);
-          return res.status(500).json({
-            error: 'Failed to save fitting sessions',
-            details: upsertFittingError.message,
-          });
-        }
-
-        const newSessionKeys = fittingRows.map((s: any) => s.session_key);
         const { data: existingSessionKeys, error: fetchSessionKeysError } = await supabase
           .from('fitting_sessions')
           .select('session_key')
@@ -318,15 +288,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        const sessionKeysToDelete = (existingSessionKeys || [])
-          .filter((row: any) => !newSessionKeys.includes(row.session_key))
-          .map((row: any) => row.session_key);
+        const oldSessionKeys = (existingSessionKeys || []).map((row: any) => row.session_key);
 
-        if (sessionKeysToDelete.length > 0) {
+        const fittingRows = orderData.fittingSessions.map((session: any, index: number) => ({
+          order_id: order.id,
+          session_key: randomUUID(),
+          fitting_date: session.date || new Date().toISOString().split('T')[0],
+          notes: Array.isArray(session.notes) ? session.notes : [],
+          photo_urls: Array.isArray(session.photoUrls) ? session.photoUrls : [],
+          sort_order: index,
+        }));
+
+        const { error: fittingError } = await supabase
+          .from('fitting_sessions')
+          .insert(fittingRows);
+
+        if (fittingError) {
+          console.error('Error saving fitting sessions:', fittingError);
+          return res.status(500).json({
+            error: 'Failed to save fitting sessions',
+            details: fittingError.message,
+          });
+        }
+
+        if (oldSessionKeys.length > 0) {
           const { error: deleteOldFittingError } = await supabase
             .from('fitting_sessions')
             .delete()
-            .in('session_key', sessionKeysToDelete);
+            .in('session_key', oldSessionKeys);
 
           if (deleteOldFittingError) {
             console.error('Error deleting old fitting sessions:', deleteOldFittingError);
