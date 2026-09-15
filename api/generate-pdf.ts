@@ -477,7 +477,13 @@ async function generatePdfBuffer(html: string): Promise<Buffer> {
 
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    try {
+      await page.setContent(html, { waitUntil: 'networkidle0', timeout: 20000 });
+    } catch {
+      // A slow/hung image must not stall the whole function until Vercel
+      // kills it — the DOM is already set, so render the PDF anyway.
+      console.warn('setContent timed out waiting for network idle; rendering PDF anyway');
+    }
     const pdfBuffer = await page.pdf({
       format: 'A4',
       margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },
@@ -586,10 +592,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const noPricesHtml = buildFittingPdfHtmlNoPrices(data);
       const withPricesHtml = buildFittingPdfHtmlWithPrices(data);
 
-      const [noPricesPdf, withPricesPdf] = await Promise.all([
-        generatePdfBuffer(noPricesHtml),
-        generatePdfBuffer(withPricesHtml),
-      ]);
+      // Sequential generation — two concurrent Chromium instances can exceed
+      // the function memory limit and kill the run silently.
+      const noPricesPdf = await generatePdfBuffer(noPricesHtml);
+      const withPricesPdf = await generatePdfBuffer(withPricesHtml);
 
       const [noPricesLink, withPricesLink] = await Promise.all([
         uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_siuvejoms.pdf`, noPricesPdf),
@@ -607,10 +613,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const fullHtml = buildFullPdfHtml(data);
     const clientHtml = buildClientPdfHtml(data);
 
-    const [fullPdf, clientPdf] = await Promise.all([
-      generatePdfBuffer(fullHtml),
-      generatePdfBuffer(clientHtml),
-    ]);
+    const fullPdf = await generatePdfBuffer(fullHtml);
+    const clientPdf = await generatePdfBuffer(clientHtml);
 
     const [fullLink, clientLink] = await Promise.all([
       uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_pilnas.pdf`, fullPdf),
@@ -620,10 +624,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (mode === 'all' && data.fittingSessions.length > 0) {
       const noPricesHtml = buildFittingPdfHtmlNoPrices(data);
       const withPricesHtml = buildFittingPdfHtmlWithPrices(data);
-      const [noPricesPdf, withPricesPdf] = await Promise.all([
-        generatePdfBuffer(noPricesHtml),
-        generatePdfBuffer(withPricesHtml),
-      ]);
+      const noPricesPdf = await generatePdfBuffer(noPricesHtml);
+      const withPricesPdf = await generatePdfBuffer(withPricesHtml);
       const [noPricesLink, withPricesLink] = await Promise.all([
         uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_siuvejoms.pdf`, noPricesPdf),
         uploadPdfToDrive(accessToken, targetFolderId, `${filePrefixTs}_fiting_pilnas.pdf`, withPricesPdf),

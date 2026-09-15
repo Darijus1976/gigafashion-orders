@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { waitUntil } from '@vercel/functions';
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
 
@@ -341,8 +342,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // PDF generation is triggered asynchronously by the frontend
-    // via POST /api/generate-pdf with { orderId } after this response.
+    // Trigger PDF generation server-side so it no longer depends on the
+    // client browser staying alive. waitUntil keeps this function alive
+    // long enough for the request to be dispatched; generate-pdf then
+    // runs to completion in its own invocation.
+    const pdfMode = typeof orderData.pdfMode === 'string' ? orderData.pdfMode : 'full';
+    const skipPdf = orderData.skipPdf === true || orderData.skipPdf === 'true';
+    const host = req.headers.host;
+
+    if (host && !skipPdf) {
+      const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
+      const pdfUrl = `${protocol}://${host}/api/generate-pdf?mode=${encodeURIComponent(pdfMode)}`;
+      waitUntil(
+        fetch(pdfUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: order.id }),
+        })
+          .then(async (r) => {
+            const text = await r.text();
+            console.log(`generate-pdf trigger: status=${r.status} body=${text.slice(0, 500)}`);
+          })
+          .catch((err) => {
+            console.error('generate-pdf trigger failed:', err);
+          })
+      );
+    }
 
     return res.status(200).json({
       success: true,

@@ -413,11 +413,6 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
     }
   }
 
-  const triggerPdfGeneration = (orderId: string, mode: 'full' | 'fiting' | 'all' = 'full', skipPdf = false) => {
-    const blob = new Blob([JSON.stringify({ orderId })], { type: 'application/json' });
-    navigator.sendBeacon(`/api/generate-pdf?mode=${mode}&skipPdf=${skipPdf}`, blob);
-  }
-
   const handleSaveOrder = async (data: {
     staffMember: string
     orderDate: string
@@ -509,6 +504,8 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
           internalPhotoUrls,
           orderId: savedOrderId,
           isExistingOrder: Boolean(initialOrderNumber),
+          pdfMode,
+          skipPdf,
         }),
       })
 
@@ -533,7 +530,6 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       window.localStorage.removeItem(DRESS_COLOUR_DRAFT_KEY)
       setIsSaving(false)
       if (initialOrderNumber) {
-        if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
         alert(`Order saved: ${result.orderNumber}`)
         if (!noRedirect) {
           justSavedRef.current = true
@@ -560,7 +556,6 @@ export function OrderForm({ orderNumber: initialOrderNumber, blankOnMount = fals
       setInternalPhotoUrls([])
       setFittingSessions(createInitialFittingSessions())
       setOrderNumber(initialOrderNumber ? orderNumber : await getNextOrderNumber())
-      if (result.orderId) triggerPdfGeneration(result.orderId, pdfMode, skipPdf)
       alert(`Order saved: ${result.orderNumber}`)
       justSavedRef.current = true
       window.location.href = '/admin'

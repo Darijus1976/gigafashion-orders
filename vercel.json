@@ -4,7 +4,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/save-order.ts": {
-      "maxDuration": 15
+      "maxDuration": 60
     },
     "api/generate-pdf.ts": {
       "maxDuration": 60
