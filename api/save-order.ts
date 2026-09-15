@@ -160,18 +160,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const newItemIds = itemsToInsert.map((item: any) => item.id);
-        const { error: deleteOldItemsError } = await supabase
+        const { data: existingItemIds, error: fetchItemIdsError } = await supabase
           .from('order_items')
-          .delete()
-          .eq('order_id', order.id)
-          .not('id', 'in', newItemIds);
+          .select('id')
+          .eq('order_id', order.id);
 
-        if (deleteOldItemsError) {
-          console.error('Error deleting old order items:', deleteOldItemsError);
+        if (fetchItemIdsError) {
+          console.error('Error fetching existing item ids:', fetchItemIdsError);
           return res.status(500).json({
-            error: 'Failed to clean up old order items',
-            details: deleteOldItemsError.message,
+            error: 'Failed to fetch existing order items',
+            details: fetchItemIdsError.message,
           });
+        }
+
+        const idsToDelete = (existingItemIds || [])
+          .filter((row: any) => !newItemIds.includes(row.id))
+          .map((row: any) => row.id);
+
+        if (idsToDelete.length > 0) {
+          const { error: deleteOldItemsError } = await supabase
+            .from('order_items')
+            .delete()
+            .in('id', idsToDelete);
+
+          if (deleteOldItemsError) {
+            console.error('Error deleting old order items:', deleteOldItemsError);
+            return res.status(500).json({
+              error: 'Failed to clean up old order items',
+              details: deleteOldItemsError.message,
+            });
+          }
         }
       } else {
         const { error: deleteAllItemsError } = await supabase
@@ -215,18 +233,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const newPaymentIds = paymentsToInsert.map((p: any) => p.id);
-        const { error: deleteOldPaymentsError } = await supabase
+        const { data: existingPaymentIds, error: fetchPaymentIdsError } = await supabase
           .from('payments')
-          .delete()
-          .eq('order_id', order.id)
-          .not('id', 'in', newPaymentIds);
+          .select('id')
+          .eq('order_id', order.id);
 
-        if (deleteOldPaymentsError) {
-          console.error('Error deleting old payments:', deleteOldPaymentsError);
+        if (fetchPaymentIdsError) {
+          console.error('Error fetching existing payment ids:', fetchPaymentIdsError);
           return res.status(500).json({
-            error: 'Failed to clean up old payments',
-            details: deleteOldPaymentsError.message,
+            error: 'Failed to fetch existing payments',
+            details: fetchPaymentIdsError.message,
           });
+        }
+
+        const paymentIdsToDelete = (existingPaymentIds || [])
+          .filter((row: any) => !newPaymentIds.includes(row.id))
+          .map((row: any) => row.id);
+
+        if (paymentIdsToDelete.length > 0) {
+          const { error: deleteOldPaymentsError } = await supabase
+            .from('payments')
+            .delete()
+            .in('id', paymentIdsToDelete);
+
+          if (deleteOldPaymentsError) {
+            console.error('Error deleting old payments:', deleteOldPaymentsError);
+            return res.status(500).json({
+              error: 'Failed to clean up old payments',
+              details: deleteOldPaymentsError.message,
+            });
+          }
         }
       } else {
         const { error: deleteAllPaymentsError } = await supabase
@@ -269,18 +305,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const newSessionKeys = fittingRows.map((s: any) => s.session_key);
-        const { error: deleteOldFittingError } = await supabase
+        const { data: existingSessionKeys, error: fetchSessionKeysError } = await supabase
           .from('fitting_sessions')
-          .delete()
-          .eq('order_id', order.id)
-          .not('session_key', 'in', newSessionKeys);
+          .select('session_key')
+          .eq('order_id', order.id);
 
-        if (deleteOldFittingError) {
-          console.error('Error deleting old fitting sessions:', deleteOldFittingError);
+        if (fetchSessionKeysError) {
+          console.error('Error fetching existing session keys:', fetchSessionKeysError);
           return res.status(500).json({
-            error: 'Failed to clean up old fitting sessions',
-            details: deleteOldFittingError.message,
+            error: 'Failed to fetch existing fitting sessions',
+            details: fetchSessionKeysError.message,
           });
+        }
+
+        const sessionKeysToDelete = (existingSessionKeys || [])
+          .filter((row: any) => !newSessionKeys.includes(row.session_key))
+          .map((row: any) => row.session_key);
+
+        if (sessionKeysToDelete.length > 0) {
+          const { error: deleteOldFittingError } = await supabase
+            .from('fitting_sessions')
+            .delete()
+            .in('session_key', sessionKeysToDelete);
+
+          if (deleteOldFittingError) {
+            console.error('Error deleting old fitting sessions:', deleteOldFittingError);
+            return res.status(500).json({
+              error: 'Failed to clean up old fitting sessions',
+              details: deleteOldFittingError.message,
+            });
+          }
         }
       } else {
         const { error: deleteAllFittingError } = await supabase
